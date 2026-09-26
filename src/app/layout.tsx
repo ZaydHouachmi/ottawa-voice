@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { JetBrains_Mono } from "next/font/google";
+import { Auth0Provider } from "@auth0/nextjs-auth0";
 import "./globals.css";
 
 // Atkinson Hyperlegible — designed by the Braille Institute for low-vision
@@ -31,7 +32,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       className={`${bodyFont.variable} ${monoFont.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col font-sans">{children}</body>
+      <body className="min-h-full flex flex-col font-sans">
+        <Auth0Provider>{children}</Auth0Provider>
+      </body>
     </html>
   );
 }

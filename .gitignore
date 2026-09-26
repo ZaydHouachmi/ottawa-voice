@@ -37,6 +37,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# per-user saved progress (real user data, never committed)
+/data
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

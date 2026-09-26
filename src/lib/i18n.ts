@@ -76,6 +76,13 @@ const strings = {
   },
   startListeningAria: { "en-US": "Start speaking", "fr-CA": "Commencer à parler" },
   stopListeningAria: { "en-US": "Stop listening", "fr-CA": "Arrêter l'écoute" },
+  logInToSave: {
+    "en-US": "Log in to save your progress",
+    "fr-CA": "Connectez-vous pour enregistrer votre progression",
+  },
+  signedInAs: { "en-US": "Signed in", "fr-CA": "Connecté" },
+  logOut: { "en-US": "Log out", "fr-CA": "Se déconnecter" },
+  logIn: { "en-US": "Log in", "fr-CA": "Se connecter" },
 } as const;
 
 export type StringKey = keyof typeof strings;

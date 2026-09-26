@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useUser } from "@auth0/nextjs-auth0";
 import { handInHandForm, type FieldType, type FormValues } from "@/lib/schema";
 import { Mascot } from "@/components/Mascot";
 import { t, fieldLabel } from "@/lib/i18n";
@@ -30,6 +31,10 @@ export default function Home() {
   // forced French recognition on a French-locale OS even when the person
   // was speaking English. Found by testing, not assumed.
   const [speechLang, setSpeechLang] = useState<SpeechLang>("en-US");
+  const { user, isLoading: userLoading } = useUser();
+  // Guards the save effect from firing (and overwriting saved progress with
+  // {}) before the initial load has actually finished.
+  const progressLoadedRef = useRef(false);
 
   const recognitionRef = useRef<SpeechRecognition | null>(null);
 
@@ -37,6 +42,49 @@ export default function Home() {
     const Ctor = window.SpeechRecognition ?? window.webkitSpeechRecognition;
     setMicSupported(Boolean(Ctor));
   }, []);
+
+  // Load saved progress once, right after login. Only merges in saved
+  // fields the person hasn't already filled in during this session, so
+  // logging in mid-conversation never clobbers what they just said.
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/progress");
+        if (!res.ok) return;
+        const data = (await res.json()) as { fields?: FormValues };
+        if (!cancelled && data.fields) {
+          setFields((prev) => ({ ...data.fields, ...prev }));
+        }
+      } catch {
+        // No saved progress, or a network hiccup - not fatal, they just
+        // start with an empty form same as a first-time visit.
+      } finally {
+        if (!cancelled) progressLoadedRef.current = true;
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
+
+  // Auto-save whenever fields change while logged in. Debounced so typing
+  // a field edit doesn't fire a request per keystroke.
+  useEffect(() => {
+    if (!user || !progressLoadedRef.current) return;
+    const timer = window.setTimeout(() => {
+      fetch("/api/progress", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fields }),
+      }).catch(() => {
+        // Save failures are silent by design - it's a convenience feature,
+        // not core to submitting the form, and shouldn't interrupt the flow.
+      });
+    }, 800);
+    return () => window.clearTimeout(timer);
+  }, [fields, user]);
 
   // The one function both text and voice input call. Never a separate path —
   // see ARCHITECTURE.md. If voice fails at demo time, typing produces an
@@ -217,17 +265,43 @@ export default function Home() {
 
       <div className="mx-auto max-w-xl px-5 py-9 sm:py-11">
         <header className="mb-8">
-          <div className="mb-4 flex items-center gap-3">
-            <Mascot className="h-10 w-10 flex-shrink-0" />
-            <div>
-              <p className="text-base font-bold leading-tight tracking-tight">
-                SpeakGov
-                <span className="ml-1.5 font-normal text-faint">/ ParlezGouv</span>
-              </p>
-              <p className="font-mono text-[10px] uppercase tracking-[0.1em] text-faint">
-                speakgov.com
-              </p>
+          <div className="mb-4 flex items-start justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <Mascot className="h-10 w-10 flex-shrink-0" />
+              <div>
+                <p className="text-base font-bold leading-tight tracking-tight">
+                  SpeakGov
+                  <span className="ml-1.5 font-normal text-faint">/ ParlezGouv</span>
+                </p>
+                <p className="font-mono text-[10px] uppercase tracking-[0.1em] text-faint">
+                  speakgov.com
+                </p>
+              </div>
             </div>
+
+            {!userLoading &&
+              (user ? (
+                <div className="flex items-center gap-2 text-xs">
+                  <span className="text-faint">
+                    {t("signedInAs", speechLang)}
+                    {user.name ? ` — ${user.name}` : ""}
+                  </span>
+                  <a
+                    href="/auth/logout"
+                    className="rounded-full border border-rule-strong px-2.5 py-1 font-semibold text-muted hover:bg-sunk"
+                  >
+                    {t("logOut", speechLang)}
+                  </a>
+                </div>
+              ) : (
+                <a
+                  href="/auth/login"
+                  className="flex-shrink-0 rounded-full border border-rule-strong px-2.5 py-1 text-xs font-semibold text-muted hover:bg-sunk"
+                  title={t("logInToSave", speechLang)}
+                >
+                  {t("logIn", speechLang)}
+                </a>
+              ))}
           </div>
           <h1 className="mb-2 text-2xl font-bold tracking-tight sm:text-3xl">
             {t("formTitle", speechLang)}
