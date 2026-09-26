@@ -102,10 +102,15 @@ export default function Home() {
     };
 
     recognition.onend = () => {
+      // Deliberately does NOT auto-submit. Found by real use: browser speech
+      // recognition genuinely struggles with uncommon names/addresses, and
+      // auto-submitting on stop meant a bad guess (e.g. a name heard as
+      // something else) went straight to the model with no chance to catch
+      // it - which is exactly what turned one mis-hearing into someone
+      // spelling their own name out loud repeatedly. Show what was heard,
+      // let the person fix it in the box (fast) or just hit Tell it if it's
+      // right, same as typed text always has.
       setStatus((prev) => (prev === "listening" ? "idle" : prev));
-      if (finalTranscript.trim()) {
-        extract(finalTranscript);
-      }
     };
 
     recognitionRef.current = recognition;
@@ -256,10 +261,12 @@ export default function Home() {
           <div className="flex items-center justify-between">
             <span className="text-xs text-faint">
               {status === "listening"
-                ? "Listening…"
+                ? "Listening — tap the mic when you're done"
                 : status === "extracting"
                   ? "Reading that…"
-                  : "⌘/Ctrl + Enter to submit"}
+                  : text.trim()
+                    ? "Check what I heard above, fix anything wrong, then tap Tell it"
+                    : "⌘/Ctrl + Enter to submit"}
             </span>
             <button
               type="button"
