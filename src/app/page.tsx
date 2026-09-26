@@ -24,6 +24,7 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [micSupported, setMicSupported] = useState(false);
+  const [readbackState, setReadbackState] = useState<"idle" | "loading" | "playing">("idle");
   // Explicit choice, never inferred from navigator.language — that silently
   // forced French recognition on a French-locale OS even when the person
   // was speaking English. Found by testing, not assumed.
@@ -150,19 +151,47 @@ export default function Home() {
       .map((f) => `${f.label}: ${formatFieldValue(f.type, fields[f.key])}`)
       .join(". ");
 
-  const speakReadback = () => {
-    // Same bug class as the mic fix: SpeechSynthesisUtterance falls back to
-    // the browser's default voice if .lang is never set - completely
-    // disconnected from the EN/FR toggle. Reuse the same explicit state so
-    // the readback voice always matches what the person chose, not the
-    // machine's OS locale.
+  const speakBrowserFallback = (phrase: string) => {
+    const utterance = new SpeechSynthesisUtterance(phrase);
+    utterance.lang = speechLang;
+    window.speechSynthesis.speak(utterance);
+  };
+
+  const speakReadback = async () => {
     const phrase =
       speechLang === "fr-CA"
         ? `Voici ce que j'ai. ${readbackSummary()}. Dites confirmer, ou modifiez un champ ci-dessous.`
         : `Here's what I have. ${readbackSummary()}. Say confirm, or change a field below.`;
-    const utterance = new SpeechSynthesisUtterance(phrase);
-    utterance.lang = speechLang;
-    window.speechSynthesis.speak(utterance);
+
+    setReadbackState("loading");
+    try {
+      const res = await fetch("/api/speak", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: phrase }),
+      });
+      if (!res.ok) throw new Error("speak route failed");
+
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const audio = new Audio(url);
+      audio.onended = () => {
+        setReadbackState("idle");
+        URL.revokeObjectURL(url);
+      };
+      audio.onerror = () => {
+        setReadbackState("idle");
+        URL.revokeObjectURL(url);
+      };
+      setReadbackState("playing");
+      await audio.play();
+    } catch {
+      // ElevenLabs unavailable for any reason - browser speech synthesis is
+      // the fallback, same resilience pattern as text/voice input elsewhere
+      // in this app. The readback never just silently fails.
+      setReadbackState("idle");
+      speakBrowserFallback(phrase);
+    }
   };
 
   const filledCount = handInHandForm.fields.filter(
@@ -344,10 +373,15 @@ export default function Home() {
             <button
               type="button"
               onClick={speakReadback}
-              className="mb-3 w-full rounded-lg border-l-4 border-accent bg-accent-wash px-3 py-2.5 text-left text-sm"
+              disabled={readbackState !== "idle"}
+              className="mb-3 w-full rounded-lg border-l-4 border-accent bg-accent-wash px-3 py-2.5 text-left text-sm disabled:opacity-70"
             >
               <span className="mb-1 block font-mono text-[10px] uppercase tracking-[0.06em] text-accent-ink">
-                🔊 tap to hear it read back
+                {readbackState === "loading"
+                  ? "🔊 generating…"
+                  : readbackState === "playing"
+                    ? "🔊 playing…"
+                    : "🔊 tap to hear it read back"}
               </span>
               {readbackSummary()}
             </button>
