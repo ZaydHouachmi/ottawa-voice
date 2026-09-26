@@ -82,18 +82,26 @@ body {
 @media (prefers-reduced-motion: no-preference) {
   @keyframes field-pop {
     0% {
+      opacity: 0;
       background-color: var(--fill);
       color: var(--ground);
-      transform: scale(1.05);
+      transform: scale(1.12) translateY(-3px);
+    }
+    45% {
+      opacity: 1;
     }
     100% {
+      opacity: 1;
       background-color: var(--fill-wash);
       color: var(--fill);
-      transform: scale(1);
+      transform: scale(1) translateY(0);
     }
   }
   .animate-field-pop {
-    animation: field-pop 450ms cubic-bezier(0.2, 0.8, 0.2, 1);
+    /* ease-out-expo-ish: a slower, more visible settle than a linear or
+       simple ease-out gives - at 450ms the pop read as an instant snap
+       with a color flash on top, since the text itself never moved. */
+    animation: field-pop 750ms cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   @keyframes mic-pulse-ring {
