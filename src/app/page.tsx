@@ -16,6 +16,60 @@ function formatFieldValue(type: FieldType, value: string | number) {
   return type === "currency" ? `$${Number(value).toLocaleString("en-US")}` : String(value);
 }
 
+function usePrefersReducedMotion() {
+  const [reduced, setReduced] = useState(false);
+  useEffect(() => {
+    const mql = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setReduced(mql.matches);
+    const handler = (e: MediaQueryListEvent) => setReduced(e.matches);
+    mql.addEventListener("change", handler);
+    return () => mql.removeEventListener("change", handler);
+  }, []);
+  return reduced;
+}
+
+// Reveals `text` one character at a time when `active` flips to true (a
+// field going "fresh" right after extraction) - the letter-by-letter
+// version of "watch it fill in", replacing an instant snap. Purely visual:
+// the button that renders this always carries the full final value as its
+// own aria-label, so a screen reader never hears the partial states.
+function TypedText({ text, active }: { text: string; active: boolean }) {
+  const prefersReducedMotion = usePrefersReducedMotion();
+  const [shown, setShown] = useState(() => (active && !prefersReducedMotion ? 0 : text.length));
+
+  useEffect(() => {
+    if (!active || prefersReducedMotion) {
+      setShown(text.length);
+      return;
+    }
+    setShown(0);
+    // Scale total typing time to length, but keep it inside a band that
+    // reads as deliberate without ever stalling a long address field.
+    const totalMs = Math.min(650, Math.max(250, text.length * 40));
+    const perCharMs = totalMs / Math.max(text.length, 1);
+    let i = 0;
+    const id = window.setInterval(() => {
+      i += 1;
+      setShown(i);
+      if (i >= text.length) window.clearInterval(id);
+    }, perCharMs);
+    return () => window.clearInterval(id);
+    // Only restart when `active` itself flips (a new extraction), not on
+    // every render while it stays true - re-keying on `text` too would
+    // restart the animation mid-type if the value below it ever changed.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active]);
+
+  return (
+    <>
+      {text.slice(0, shown)}
+      {active && !prefersReducedMotion && shown < text.length && (
+        <span className="typing-caret" aria-hidden="true" />
+      )}
+    </>
+  );
+}
+
 type SpeechLang = "en-US" | "fr-CA";
 
 export default function Home() {
@@ -465,6 +519,9 @@ export default function Home() {
                   <button
                     type="button"
                     onClick={() => setEditingKey(field.key)}
+                    aria-label={
+                      value !== undefined ? formatFieldValue(field.type, value) : undefined
+                    }
                     className={`field-value-transition rounded px-1.5 py-0.5 text-right font-semibold ${
                       value === undefined
                         ? "font-normal italic text-faint"
@@ -473,9 +530,13 @@ export default function Home() {
                           : "text-ink hover:bg-sunk"
                     }`}
                   >
-                    {value !== undefined
-                      ? formatFieldValue(field.type, value)
-                      : t("notYetProvided", speechLang)}
+                    {value !== undefined ? (
+                      <span aria-hidden="true">
+                        <TypedText text={formatFieldValue(field.type, value)} active={isFresh} />
+                      </span>
+                    ) : (
+                      t("notYetProvided", speechLang)
+                    )}
                   </button>
                 )}
               </div>

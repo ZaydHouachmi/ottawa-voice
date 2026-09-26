@@ -74,34 +74,46 @@ body {
   color: var(--ink);
 }
 
-/* Three deliberate motion moments, not scattered effects: the field-fill
-   pop (the actual "watch it work" beat of the demo), the mic pulse while
-   listening, and a thinking indicator during extraction. All guarded by
-   prefers-reduced-motion - this is an accessibility-focused product, so
-   respecting that setting isn't optional here. */
+/* Four deliberate motion moments, not scattered effects: the field-fill
+   type-in + pop (the actual "watch it work" beat of the demo), the mic
+   pulse while listening, and a thinking indicator during extraction. All
+   guarded by prefers-reduced-motion - this is an accessibility-focused
+   product, so respecting that setting isn't optional here. */
 @media (prefers-reduced-motion: no-preference) {
+  /* The "appearing" motion now comes from the character-by-character
+     type-in (see TypedText in page.tsx), not from this keyframe - an
+     opacity/transform entrance on top of letters still being typed made
+     the first few characters fade in invisibly, which looked broken. This
+     is now just the color settle that plays alongside/after the typing. */
   @keyframes field-pop {
     0% {
-      opacity: 0;
       background-color: var(--fill);
       color: var(--ground);
-      transform: scale(1.12) translateY(-3px);
-    }
-    45% {
-      opacity: 1;
+      transform: scale(1.05);
     }
     100% {
-      opacity: 1;
       background-color: var(--fill-wash);
       color: var(--fill);
-      transform: scale(1) translateY(0);
+      transform: scale(1);
     }
   }
   .animate-field-pop {
-    /* ease-out-expo-ish: a slower, more visible settle than a linear or
-       simple ease-out gives - at 450ms the pop read as an instant snap
-       with a color flash on top, since the text itself never moved. */
-    animation: field-pop 750ms cubic-bezier(0.16, 1, 0.3, 1);
+    animation: field-pop 700ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes caret-blink {
+    50% {
+      opacity: 0;
+    }
+  }
+  .typing-caret {
+    display: inline-block;
+    width: 2px;
+    height: 0.9em;
+    margin-left: 1px;
+    vertical-align: -0.1em;
+    background: currentColor;
+    animation: caret-blink 0.8s steps(1) infinite;
   }
 
   @keyframes mic-pulse-ring {
