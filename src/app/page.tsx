@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { handInHandForm, type FieldType, type FormValues } from "@/lib/schema";
 import { Mascot } from "@/components/Mascot";
+import { t, fieldLabel } from "@/lib/i18n";
 
 type Status = "idle" | "listening" | "extracting" | "ready" | "confirmed";
 
@@ -63,12 +64,10 @@ export default function Home() {
       window.setTimeout(() => setFreshKeys(new Set()), 2200);
     } catch (err) {
       console.error(err);
-      setError(
-        "Something went wrong understanding that. You can also fill in a field directly below.",
-      );
+      setError(t("extractErrorText", speechLang));
       setStatus("idle");
     }
-  }, []);
+  }, [speechLang]);
 
   const startListening = useCallback(() => {
     const Ctor = window.SpeechRecognition ?? window.webkitSpeechRecognition;
@@ -99,7 +98,7 @@ export default function Home() {
 
     recognition.onerror = () => {
       setStatus("idle");
-      setError("Didn't catch that — you can type instead.");
+      setError(t("micErrorText", speechLang));
     };
 
     recognition.onend = () => {
@@ -148,7 +147,7 @@ export default function Home() {
   const readbackSummary = () =>
     handInHandForm.fields
       .filter((f) => fields[f.key] !== undefined)
-      .map((f) => `${f.label}: ${formatFieldValue(f.type, fields[f.key])}`)
+      .map((f) => `${fieldLabel(f.key, speechLang)}: ${formatFieldValue(f.type, fields[f.key])}`)
       .join(". ");
 
   const speakBrowserFallback = (phrase: string) => {
@@ -231,12 +230,9 @@ export default function Home() {
             </div>
           </div>
           <h1 className="mb-2 text-2xl font-bold tracking-tight sm:text-3xl">
-            {handInHandForm.title}
+            {t("formTitle", speechLang)}
           </h1>
-          <p className="max-w-prose text-sm text-muted">
-            Tell me about your situation — out loud or typed — and I&apos;ll fill
-            this in for you.
-          </p>
+          <p className="max-w-prose text-sm text-muted">{t("tagline", speechLang)}</p>
         </header>
 
         {/* input row — lighter than the form panel below, which is the
@@ -244,7 +240,7 @@ export default function Home() {
         <div className="mb-8 border-b border-rule pb-6">
           <div className="mb-3 flex items-center justify-between">
             <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-faint">
-              Speaking language
+              {t("speakingLanguage", speechLang)}
             </span>
             <div className="flex overflow-hidden rounded-full border border-rule-strong text-xs font-semibold">
               {(["en-US", "fr-CA"] as const).map((lang) => (
@@ -269,7 +265,11 @@ export default function Home() {
               type="button"
               onClick={status === "listening" ? stopListening : startListening}
               disabled={!micSupported}
-              aria-label={status === "listening" ? "Stop listening" : "Start speaking"}
+              aria-label={
+                status === "listening"
+                  ? t("stopListeningAria", speechLang)
+                  : t("startListeningAria", speechLang)
+              }
               className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full text-lg transition-colors ${
                 status === "listening"
                   ? "bg-mic text-surface"
@@ -288,8 +288,8 @@ export default function Home() {
               }}
               placeholder={
                 micSupported
-                  ? "Tell me about your situation, or tap the mic…"
-                  : "Tell me about your situation — voice input isn't supported in this browser, typing works the same."
+                  ? t("placeholderWithMic", speechLang)
+                  : t("placeholderNoMic", speechLang)
               }
               rows={3}
               className="flex-1 resize-none rounded-lg border border-rule-strong bg-ground px-3 py-2 text-sm text-ink placeholder:text-faint focus:border-accent focus:outline-none"
@@ -298,12 +298,12 @@ export default function Home() {
           <div className="flex items-center justify-between">
             <span className="text-xs text-faint">
               {status === "listening"
-                ? "Listening — tap the mic when you're done"
+                ? t("listening", speechLang)
                 : status === "extracting"
-                  ? "Reading that…"
+                  ? t("readingThat", speechLang)
                   : text.trim()
-                    ? "Check what I heard above, fix anything wrong, then tap Tell it"
-                    : "⌘/Ctrl + Enter to submit"}
+                    ? t("reviewHint", speechLang)
+                    : t("keyboardHint", speechLang)}
             </span>
             <button
               type="button"
@@ -311,7 +311,7 @@ export default function Home() {
               disabled={!text.trim() || status === "extracting"}
               className="rounded-lg bg-ink px-4 py-1.5 text-sm font-semibold text-ground disabled:opacity-30"
             >
-              {status === "extracting" ? "Reading…" : "Tell it"}
+              {status === "extracting" ? t("reading", speechLang) : t("tellIt", speechLang)}
             </button>
           </div>
           {error && <p className="mt-2 text-xs text-mic">{error}</p>}
@@ -322,7 +322,7 @@ export default function Home() {
             point, so it carries the strongest framing on the page. */}
         <div className="mb-6 overflow-hidden border-2 border-accent">
           <div className="bg-accent px-4 py-2 text-[11px] font-bold uppercase tracking-[0.08em] text-ground">
-            {handInHandForm.title}
+            {t("formTitle", speechLang)}
           </div>
           {handInHandForm.fields.map((field) => {
             const value = fields[field.key];
@@ -333,7 +333,9 @@ export default function Home() {
                 key={field.key}
                 className="flex items-baseline justify-between gap-3 border-b border-rule px-4 py-3 text-sm last:border-b-0"
               >
-                <span className="flex-shrink-0 text-faint">{field.label}</span>
+                <span className="flex-shrink-0 text-faint">
+                  {fieldLabel(field.key, speechLang)}
+                </span>
                 {isEditing ? (
                   <input
                     autoFocus
@@ -359,7 +361,7 @@ export default function Home() {
                   >
                     {value !== undefined
                       ? formatFieldValue(field.type, value)
-                      : "not yet provided"}
+                      : t("notYetProvided", speechLang)}
                   </button>
                 )}
               </div>
@@ -378,10 +380,10 @@ export default function Home() {
             >
               <span className="mb-1 block font-mono text-[10px] uppercase tracking-[0.06em] text-accent-ink">
                 {readbackState === "loading"
-                  ? "🔊 generating…"
+                  ? t("generating", speechLang)
                   : readbackState === "playing"
-                    ? "🔊 playing…"
-                    : "🔊 tap to hear it read back"}
+                    ? t("playing", speechLang)
+                    : t("tapToHear", speechLang)}
               </span>
               {readbackSummary()}
             </button>
@@ -391,10 +393,10 @@ export default function Home() {
                 onClick={() => setStatus("confirmed")}
                 className="rounded-lg bg-fill px-4 py-2 text-sm font-semibold text-surface"
               >
-                Confirm
+                {t("confirm", speechLang)}
               </button>
               <span className="self-center text-xs text-faint">
-                or tap any field above to correct it
+                {t("correctHint", speechLang)}
               </span>
             </div>
           </div>
@@ -405,15 +407,13 @@ export default function Home() {
             <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-fill-wash text-lg text-fill">
               ✓
             </div>
-            <p className="mb-1 font-bold">Your application is filled in</p>
-            <p className="text-sm text-muted">
-              Saved to your account · log back in anytime to finish or edit
-            </p>
+            <p className="mb-1 font-bold">{t("doneTitle", speechLang)}</p>
+            <p className="text-sm text-muted">{t("doneSub", speechLang)}</p>
           </div>
         )}
 
         <p className="mt-10 max-w-prose text-xs text-faint">
-          {handInHandForm.modeledOn}
+          {t("modeledOn", speechLang)}
         </p>
       </div>
     </div>
