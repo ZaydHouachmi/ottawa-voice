@@ -2,15 +2,17 @@
 
 Government benefit forms exist to help people, but the forms themselves are often the barrier. Dense language, unfamiliar fields, no help if English or French isn't your first language — the people who most need programs like Ottawa's Hand in Hand recreation and culture fee support are often the people least equipped to fight through the paperwork to get it: someone with low literacy, a newcomer still learning the language, an elderly resident unfamiliar with online forms, or just someone exhausted after a long shift who doesn't have the patience left to parse a government website.
 
-We wanted to try removing the form entirely. Not the program, not the eligibility criteria — just the *interface*. Instead of reading a form and figuring out what to type where, you just talk about your situation the way you'd explain it to a friend, and the structure gets built for you.
+We wanted to try removing the form entirely — not the program, not the eligibility criteria, just the *interface*. Governments already offer a form through multiple channels — paper, phone, in person, online — specifically for accessibility reasons. We wanted to prototype a fifth: the same form, the same legal process, the same backend, with a conversational layer in front of it that a government could *accommodate* alongside the channels it already has, not replace them with. Instead of reading a form and figuring out what to type where, you talk about your situation the way you'd explain it to a person behind a counter, and the structure gets built for you.
 
 ## What it does
 
-Open SpeakGov and you get a mic button and a text box — same input, your choice, and voice never blocks the flow if it fails. You describe your situation out loud or by typing:
+Open SpeakGov and, before you're asked to type or say anything, you can tap one button and *hear* what the form needs — in a real voice, in plain language, not a list of field labels you have to read first. Then you answer, out loud or by typing (same input, your choice, and voice never blocks the flow if it fails):
 
 > "Hi, my name's Zayd Houachmi, I live at 110 Dunbarton Court in Ottawa, I have two dependents, and my annual income is about 50 thousand dollars."
 
-Gemini extracts the four fields for a real program (modeled on the City of Ottawa's Hand in Hand recreation fee support) and they populate live on screen. You review what it heard — correcting a field is one tap — then confirm, and ElevenLabs reads the completed summary back to you in a real voice before you're done. Log in with Auth0 and your progress saves automatically, so a half-filled form is there when you come back.
+Gemini extracts the four fields for a real program (modeled on the City of Ottawa's Hand in Hand recreation fee support) and they populate live on screen. You review what it heard — correcting a field is one tap — then confirm, and ElevenLabs reads the completed summary back to you before you're done. Log in with Auth0 and your progress saves automatically, so a half-filled form is there when you come back.
+
+Both directions are spoken, not just one. Reading text is never required to use the product start to finish — which matters, because a product that only reads your answer *back* to you still assumed you could read the question in the first place.
 
 The whole thing works in English or French, chosen explicitly rather than guessed from your browser — Ottawa is officially bilingual, and a French-speaking user gets a fully French interface, not just a translated label here and there.
 
@@ -42,4 +44,6 @@ That the parts of a hackathon project people don't show off — a schema that fo
 
 ## What's next for SpeakGov
 
-Right now SpeakGov handles one form well, on purpose — reliability mattered more than breadth for a weekend build. The natural next step is a front door that listens to someone's situation and routes them to the *right* form among several, which is a classification problem rather than an extraction one. Beyond that: translating extracted answers into an official language when someone speaks a language the form doesn't accept, and — the actual goal — a conversation with the City of Ottawa about whether a real version of this belongs in front of a real program.
+Right now SpeakGov handles one form well, on purpose — reliability mattered more than breadth for a weekend build. The natural next step is a front door that listens to someone's situation and routes them to the *right* form among several, which is a classification problem rather than an extraction one. Beyond that: translating extracted answers into an official language when someone speaks a language the form doesn't accept.
+
+But the real next step isn't a feature — it's a conversation. We're not proposing that any government replace their forms or their systems with this. We're proposing the pattern: a conversational layer in front of an existing form, changing nothing about the form itself, that a government could accommodate as one more accessible channel alongside the ones it already offers. That's a much smaller ask than "adopt our app," and a much more honest one — and it's the actual goal behind building this at all.
