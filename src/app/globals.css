@@ -73,3 +73,71 @@ body {
   background: var(--ground);
   color: var(--ink);
 }
+
+/* Three deliberate motion moments, not scattered effects: the field-fill
+   pop (the actual "watch it work" beat of the demo), the mic pulse while
+   listening, and a thinking indicator during extraction. All guarded by
+   prefers-reduced-motion - this is an accessibility-focused product, so
+   respecting that setting isn't optional here. */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes field-pop {
+    0% {
+      background-color: var(--fill);
+      color: var(--ground);
+      transform: scale(1.05);
+    }
+    100% {
+      background-color: var(--fill-wash);
+      color: var(--fill);
+      transform: scale(1);
+    }
+  }
+  .animate-field-pop {
+    animation: field-pop 450ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  @keyframes mic-pulse-ring {
+    0% {
+      box-shadow: 0 0 0 0 color-mix(in srgb, var(--mic) 45%, transparent);
+    }
+    100% {
+      box-shadow: 0 0 0 14px color-mix(in srgb, var(--mic) 0%, transparent);
+    }
+  }
+  .animate-mic-pulse {
+    animation: mic-pulse-ring 1.4s ease-out infinite;
+  }
+
+  @keyframes thinking-dot {
+    0%,
+    80%,
+    100% {
+      opacity: 0.25;
+      transform: translateY(0);
+    }
+    40% {
+      opacity: 1;
+      transform: translateY(-2px);
+    }
+  }
+  .thinking-dots span {
+    animation: thinking-dot 1.1s infinite ease-in-out;
+  }
+  .thinking-dots span:nth-child(2) {
+    animation-delay: 0.15s;
+  }
+  .thinking-dots span:nth-child(3) {
+    animation-delay: 0.3s;
+  }
+}
+
+/* Reduced-motion fallback: exit transition still uses a plain CSS
+   transition (not a keyframe animation), so it's unaffected by the media
+   query above and always fades rather than snapping - transitions on a
+   property change are generally considered acceptable even under
+   prefers-reduced-motion, unlike free-running or large-motion animation. */
+.field-value-transition {
+  transition:
+    background-color 500ms ease,
+    color 500ms ease;
+}

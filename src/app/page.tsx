@@ -377,7 +377,7 @@ export default function Home() {
               }
               className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full text-lg transition-colors ${
                 status === "listening"
-                  ? "bg-mic text-surface"
+                  ? "animate-mic-pulse bg-mic text-surface"
                   : "bg-mic-wash text-mic disabled:opacity-40"
               }`}
             >
@@ -401,14 +401,23 @@ export default function Home() {
             />
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-xs text-faint">
-              {status === "listening"
-                ? t("listening", speechLang)
-                : status === "extracting"
-                  ? t("readingThat", speechLang)
-                  : text.trim()
-                    ? t("reviewHint", speechLang)
-                    : t("keyboardHint", speechLang)}
+            <span className="flex items-center gap-1.5 text-xs text-faint">
+              {status === "listening" ? (
+                t("listening", speechLang)
+              ) : status === "extracting" ? (
+                <>
+                  {t("readingThat", speechLang)}
+                  <span className="thinking-dots inline-flex gap-0.5" aria-hidden>
+                    <span className="h-1 w-1 rounded-full bg-faint" />
+                    <span className="h-1 w-1 rounded-full bg-faint" />
+                    <span className="h-1 w-1 rounded-full bg-faint" />
+                  </span>
+                </>
+              ) : text.trim() ? (
+                t("reviewHint", speechLang)
+              ) : (
+                t("keyboardHint", speechLang)
+              )}
             </span>
             <button
               type="button"
@@ -456,11 +465,11 @@ export default function Home() {
                   <button
                     type="button"
                     onClick={() => setEditingKey(field.key)}
-                    className={`rounded px-1.5 py-0.5 text-right font-semibold transition-colors ${
+                    className={`field-value-transition rounded px-1.5 py-0.5 text-right font-semibold ${
                       value === undefined
                         ? "font-normal italic text-faint"
                         : isFresh
-                          ? "bg-fill-wash text-fill"
+                          ? "animate-field-pop bg-fill-wash text-fill"
                           : "text-ink hover:bg-sunk"
                     }`}
                   >
