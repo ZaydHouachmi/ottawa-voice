@@ -45,7 +45,7 @@ function TypedText({ text, active }: { text: string; active: boolean }) {
     setShown(0);
     // Scale total typing time to length, but keep it inside a band that
     // reads as deliberate without ever stalling a long address field.
-    const totalMs = Math.min(650, Math.max(250, text.length * 40));
+    const totalMs = Math.min(950, Math.max(350, text.length * 55));
     const perCharMs = totalMs / Math.max(text.length, 1);
     let i = 0;
     const id = window.setInterval(() => {

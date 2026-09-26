@@ -98,7 +98,7 @@ body {
     }
   }
   .animate-field-pop {
-    animation: field-pop 700ms cubic-bezier(0.16, 1, 0.3, 1);
+    animation: field-pop 950ms cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   @keyframes caret-blink {
