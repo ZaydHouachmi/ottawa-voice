@@ -13,6 +13,8 @@ function formatFieldValue(type: FieldType, value: string | number) {
   return type === "currency" ? `$${Number(value).toLocaleString("en-US")}` : String(value);
 }
 
+type SpeechLang = "en-US" | "fr-CA";
+
 export default function Home() {
   const [text, setText] = useState("");
   const [fields, setFields] = useState<FormValues>({});
@@ -21,6 +23,10 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [micSupported, setMicSupported] = useState(false);
+  // Explicit choice, never inferred from navigator.language — that silently
+  // forced French recognition on a French-locale OS even when the person
+  // was speaking English. Found by testing, not assumed.
+  const [speechLang, setSpeechLang] = useState<SpeechLang>("en-US");
 
   const recognitionRef = useRef<SpeechRecognition | null>(null);
 
@@ -67,8 +73,11 @@ export default function Home() {
     if (!Ctor) return;
 
     const recognition = new Ctor();
-    recognition.lang = navigator.language || "en-US";
-    recognition.continuous = false;
+    recognition.lang = speechLang;
+    // true = keep listening through natural pauses in a sentence until the
+    // user stops it themselves. false (the old value) stopped after the
+    // first pause, cutting people off mid-sentence — found by testing.
+    recognition.continuous = true;
     recognition.interimResults = true;
 
     let finalTranscript = "";
@@ -101,8 +110,9 @@ export default function Home() {
     recognitionRef.current = recognition;
     setStatus("listening");
     setError(null);
+    setText("");
     recognition.start();
-  }, [extract]);
+  }, [extract, speechLang]);
 
   const stopListening = useCallback(() => {
     recognitionRef.current?.stop();
@@ -163,6 +173,28 @@ export default function Home() {
 
         {/* input row */}
         <div className="mb-6 rounded-xl border border-rule bg-surface p-4">
+          <div className="mb-3 flex items-center justify-between">
+            <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-faint">
+              Speaking language
+            </span>
+            <div className="flex overflow-hidden rounded-full border border-rule-strong text-xs font-semibold">
+              {(["en-US", "fr-CA"] as const).map((lang) => (
+                <button
+                  key={lang}
+                  type="button"
+                  onClick={() => setSpeechLang(lang)}
+                  disabled={status === "listening"}
+                  className={`px-3 py-1 transition-colors disabled:opacity-50 ${
+                    speechLang === lang
+                      ? "bg-ink text-ground"
+                      : "bg-surface text-muted hover:bg-sunk"
+                  }`}
+                >
+                  {lang === "en-US" ? "English" : "Français"}
+                </button>
+              ))}
+            </div>
+          </div>
           <div className="mb-3 flex items-center gap-3">
             <button
               type="button"
