@@ -84,15 +84,25 @@ export async function POST(req: Request) {
   }
 
   try {
-    const interaction = await client.interactions.create({
-      model: "gemini-3.8-flash",
-      input: buildPrompt(text),
-      response_format: {
-        type: "text",
-        mime_type: "application/json",
-        schema: buildJsonSchema(),
-      },
-    });
+    // Race against a hard timeout. Discovered by testing: on a rate-limit
+    // error the SDK appears to retry internally rather than failing fast,
+    // which hung the whole request until the CLIENT gave up - on a live
+    // demo that reads as a frozen page, not an error. This guarantees we
+    // always respond within a few seconds, whatever the underlying cause.
+    const interaction = await Promise.race([
+      client.interactions.create({
+        model: "gemini-3.8-flash",
+        input: buildPrompt(text),
+        response_format: {
+          type: "text",
+          mime_type: "application/json",
+          schema: buildJsonSchema(),
+        },
+      }),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error("Gemini request timed out after 12s")), 12_000),
+      ),
+    ]);
 
     const raw = interaction.output_text;
     if (!raw) {
