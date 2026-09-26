@@ -25,6 +25,19 @@ const strings = {
     "fr-CA": "Parlez-moi de votre situation — à voix haute ou par écrit — et je remplirai ceci pour vous.",
   },
   speakingLanguage: { "en-US": "Speaking language", "fr-CA": "Langue parlée" },
+  // Spoken, not just displayed - the point is that hearing this replaces
+  // needing to read the field labels below at all. See ARCHITECTURE.md:
+  // reading is never required in either direction.
+  whatToSay: {
+    "en-US": "🔊 Not sure what to say? Tap to hear what I need",
+    "fr-CA": "🔊 Vous ne savez pas quoi dire ? Touchez pour écouter",
+  },
+  whatToSayPrompt: {
+    "en-US":
+      "Here's what I need. Tell me your full name, your address, how many dependents you have, and your yearly household income. You can say it all at once, in your own words.",
+    "fr-CA":
+      "Voici ce dont j'ai besoin. Dites-moi votre nom complet, votre adresse, le nombre de personnes à votre charge, et votre revenu annuel du ménage. Vous pouvez tout dire d'un coup, dans vos propres mots.",
+  },
   placeholderWithMic: {
     "en-US": "Tell me about your situation, or tap the mic…",
     "fr-CA": "Parlez-moi de votre situation, ou touchez le micro…",

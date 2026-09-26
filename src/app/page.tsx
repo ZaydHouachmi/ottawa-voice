@@ -26,7 +26,11 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [micSupported, setMicSupported] = useState(false);
-  const [readbackState, setReadbackState] = useState<"idle" | "loading" | "playing">("idle");
+  // Which spoken moment is active, if any - the "what to say" prompt or the
+  // "here's what I have" readback - so each button can show its own state
+  // without the two stepping on each other.
+  const [audioAction, setAudioAction] = useState<"prompt" | "readback" | null>(null);
+  const [audioStatus, setAudioStatus] = useState<"loading" | "playing">("loading");
   // Explicit choice, never inferred from navigator.language — that silently
   // forced French recognition on a French-locale OS even when the person
   // was speaking English. Found by testing, not assumed.
@@ -204,13 +208,14 @@ export default function Home() {
     window.speechSynthesis.speak(utterance);
   };
 
-  const speakReadback = async () => {
-    const phrase =
-      speechLang === "fr-CA"
-        ? `Voici ce que j'ai. ${readbackSummary()}. Dites confirmer, ou modifiez un champ ci-dessous.`
-        : `Here's what I have. ${readbackSummary()}. Say confirm, or change a field below.`;
-
-    setReadbackState("loading");
+  // Shared by both spoken moments in the app: the "what do I need to say"
+  // prompt before input, and the "here's what I have" readback after. Two
+  // fully spoken directions, so neither ever requires reading a label to
+  // use the product - see the conversation that led to adding the prompt
+  // side of this, not just the readback side.
+  const playText = async (phrase: string, action: "prompt" | "readback") => {
+    setAudioAction(action);
+    setAudioStatus("loading");
     try {
       const res = await fetch("/api/speak", {
         method: "POST",
@@ -223,22 +228,32 @@ export default function Home() {
       const url = URL.createObjectURL(blob);
       const audio = new Audio(url);
       audio.onended = () => {
-        setReadbackState("idle");
+        setAudioAction(null);
         URL.revokeObjectURL(url);
       };
       audio.onerror = () => {
-        setReadbackState("idle");
+        setAudioAction(null);
         URL.revokeObjectURL(url);
       };
-      setReadbackState("playing");
+      setAudioStatus("playing");
       await audio.play();
     } catch {
       // ElevenLabs unavailable for any reason - browser speech synthesis is
       // the fallback, same resilience pattern as text/voice input elsewhere
-      // in this app. The readback never just silently fails.
-      setReadbackState("idle");
+      // in this app. Spoken output never just silently fails.
+      setAudioAction(null);
       speakBrowserFallback(phrase);
     }
+  };
+
+  const speakPrompt = () => playText(t("whatToSayPrompt", speechLang), "prompt");
+
+  const speakReadback = () => {
+    const phrase =
+      speechLang === "fr-CA"
+        ? `Voici ce que j'ai. ${readbackSummary()}. Dites confirmer, ou modifiez un champ ci-dessous.`
+        : `Here's what I have. ${readbackSummary()}. Say confirm, or change a field below.`;
+    return playText(phrase, "readback");
   };
 
   const filledCount = handInHandForm.fields.filter(
@@ -312,6 +327,22 @@ export default function Home() {
         {/* input row — lighter than the form panel below, which is the
             actual point of the page and gets the stronger framing */}
         <div className="mb-8 border-b border-rule pb-6">
+          {/* Spoken both directions: this tells you what to say before you
+              say anything, so reading the field labels below is never
+              required to use the product - not just the readback after. */}
+          <button
+            type="button"
+            onClick={speakPrompt}
+            disabled={audioAction !== null}
+            className="mb-4 w-full rounded-lg border border-accent bg-accent-wash px-3 py-2.5 text-left text-sm font-semibold text-accent-ink disabled:opacity-70"
+          >
+            {audioAction === "prompt"
+              ? audioStatus === "loading"
+                ? t("generating", speechLang)
+                : t("playing", speechLang)
+              : t("whatToSay", speechLang)}
+          </button>
+
           <div className="mb-3 flex items-center justify-between">
             <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-faint">
               {t("speakingLanguage", speechLang)}
@@ -449,15 +480,15 @@ export default function Home() {
             <button
               type="button"
               onClick={speakReadback}
-              disabled={readbackState !== "idle"}
+              disabled={audioAction !== null}
               className="mb-3 w-full rounded-lg border-l-4 border-accent bg-accent-wash px-3 py-2.5 text-left text-sm disabled:opacity-70"
             >
               <span className="mb-1 block font-mono text-[10px] uppercase tracking-[0.06em] text-accent-ink">
-                {readbackState === "loading"
-                  ? t("generating", speechLang)
-                  : readbackState === "playing"
-                    ? t("playing", speechLang)
-                    : t("tapToHear", speechLang)}
+                {audioAction === "readback"
+                  ? audioStatus === "loading"
+                    ? t("generating", speechLang)
+                    : t("playing", speechLang)
+                  : t("tapToHear", speechLang)}
               </span>
               {readbackSummary()}
             </button>
