@@ -13,17 +13,27 @@ function getClient() {
 }
 
 function buildJsonSchema() {
-  const properties: Record<string, { type: string; description: string }> = {};
+  const properties: Record<string, { type: string[]; description: string }> = {};
+  const required: string[] = [];
   for (const field of handInHandForm.fields) {
+    // IMPORTANT: every field is schema-`required` and type-nullable, even
+    // though the product behavior we want is "omit fields not mentioned".
+    // Discovered by testing (see scripts/debug-extract.mjs): with an
+    // all-optional schema, gemini-3.8-flash's extended-thinking mode
+    // frequently reasons about every field internally, then only writes
+    // ONE field to the visible output and stops — silently dropping the
+    // rest. Forcing every key to be present (using null for "not
+    // mentioned") makes the model actually consider each field instead of
+    // stopping early. We strip the nulls back out below, after the call,
+    // so the client-facing contract — only mentioned fields present — is
+    // unchanged. Do not "simplify" this back to an optional schema.
     properties[field.key] = {
-      type: field.type === "text" ? "string" : "number",
+      type: [field.type === "text" ? "string" : "number", "null"],
       description: field.hint ? `${field.label} — ${field.hint}` : field.label,
     };
+    required.push(field.key);
   }
-  // Deliberately no `required` here — the whole point is partial extraction
-  // from one utterance. A field the person didn't mention should be absent,
-  // not a validation failure.
-  return { type: "object", properties };
+  return { type: "object", properties, required };
 }
 
 function buildPrompt(text: string) {
@@ -34,11 +44,12 @@ function buildPrompt(text: string) {
   return `You are extracting form field values from something a person said out loud
 or typed, for a form titled "${handInHandForm.title}".
 
-Only include a field if the person actually stated it. Never guess, infer, or
-invent a value for something they did not mention — omit that key entirely
-instead. The person may speak in any language; return string values in the
-same language they used. Numbers should always be plain digits with no
-currency symbols, commas, or units.
+Output a JSON object with EVERY field below present as a key. Check each
+field independently. If the person actually stated a value for a field, use
+it. If they did not mention that field at all, use null for it — never
+guess or invent a value. The person may speak in any language; return
+string values in the same language they used. Numbers should always be
+plain digits with no currency symbols, commas, or units.
 
 Fields:
 ${fieldList}
