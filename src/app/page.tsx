@@ -151,9 +151,17 @@ export default function Home() {
       .join(". ");
 
   const speakReadback = () => {
-    const utterance = new SpeechSynthesisUtterance(
-      `Here's what I have. ${readbackSummary()}. Say confirm, or change a field below.`,
-    );
+    // Same bug class as the mic fix: SpeechSynthesisUtterance falls back to
+    // the browser's default voice if .lang is never set - completely
+    // disconnected from the EN/FR toggle. Reuse the same explicit state so
+    // the readback voice always matches what the person chose, not the
+    // machine's OS locale.
+    const phrase =
+      speechLang === "fr-CA"
+        ? `Voici ce que j'ai. ${readbackSummary()}. Dites confirmer, ou modifiez un champ ci-dessous.`
+        : `Here's what I have. ${readbackSummary()}. Say confirm, or change a field below.`;
+    const utterance = new SpeechSynthesisUtterance(phrase);
+    utterance.lang = speechLang;
     window.speechSynthesis.speak(utterance);
   };
 
