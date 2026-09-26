@@ -1,7 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Ship a trimmed, self-contained server bundle so the deploy target
+  // (a 1GB VPS) never needs to run `next build` itself — see ARCHITECTURE.md.
+  output: "standalone",
 };
 
 export default nextConfig;
