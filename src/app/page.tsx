@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { handInHandForm, type FieldType, type FormValues } from "@/lib/schema";
+import { Mascot } from "@/components/Mascot";
 
 type Status = "idle" | "listening" | "extracting" | "ready" | "confirmed";
 
@@ -157,11 +158,36 @@ export default function Home() {
 
   return (
     <div className="min-h-full flex-1 bg-ground text-ink">
-      <div className="mx-auto max-w-xl px-5 py-11 sm:py-14">
-        <header className="mb-8">
-          <p className="mb-2 font-mono text-[11px] uppercase tracking-[0.12em] text-accent-ink">
-            Ottawa Voice
+      {/* identity banner — the format real government sites use to assert
+          official status, used here to say the honest opposite */}
+      <div className="border-b-2 border-civic-red bg-accent text-ground">
+        <div className="mx-auto flex max-w-xl items-start gap-2 px-5 py-2 text-xs">
+          <span aria-hidden className="mt-px">ⓘ</span>
+          <p>
+            A civic technology prototype, built for Hack the Hill III — not an
+            official City of Ottawa or Government of Canada service.
+            <span className="opacity-70">
+              {" "}
+              Un prototype de technologie civique — pas un service officiel.
+            </span>
           </p>
+        </div>
+      </div>
+
+      <div className="mx-auto max-w-xl px-5 py-9 sm:py-11">
+        <header className="mb-8">
+          <div className="mb-4 flex items-center gap-3">
+            <Mascot className="h-10 w-10 flex-shrink-0" />
+            <div>
+              <p className="text-base font-bold leading-tight tracking-tight">
+                SpeakGov
+                <span className="ml-1.5 font-normal text-faint">/ ParlezGouv</span>
+              </p>
+              <p className="font-mono text-[10px] uppercase tracking-[0.1em] text-faint">
+                speakgov.com
+              </p>
+            </div>
+          </div>
           <h1 className="mb-2 text-2xl font-bold tracking-tight sm:text-3xl">
             {handInHandForm.title}
           </h1>
@@ -171,8 +197,9 @@ export default function Home() {
           </p>
         </header>
 
-        {/* input row */}
-        <div className="mb-6 rounded-xl border border-rule bg-surface p-4">
+        {/* input row — lighter than the form panel below, which is the
+            actual point of the page and gets the stronger framing */}
+        <div className="mb-8 border-b border-rule pb-6">
           <div className="mb-3 flex items-center justify-between">
             <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-faint">
               Speaking language
@@ -246,9 +273,11 @@ export default function Home() {
           {error && <p className="mt-2 text-xs text-mic">{error}</p>}
         </div>
 
-        {/* live form panel */}
-        <div className="mb-6 overflow-hidden rounded-xl border border-rule">
-          <div className="border-b border-rule bg-sunk px-4 py-2 font-mono text-[10px] uppercase tracking-[0.08em] text-faint">
+        {/* live form panel — sharp corners and a heavier border, like a
+            document box, not a rounded SaaS card. This is the page's actual
+            point, so it carries the strongest framing on the page. */}
+        <div className="mb-6 overflow-hidden border-2 border-accent">
+          <div className="bg-accent px-4 py-2 text-[11px] font-bold uppercase tracking-[0.08em] text-ground">
             {handInHandForm.title}
           </div>
           {handInHandForm.fields.map((field) => {

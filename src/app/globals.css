@@ -1,17 +1,24 @@
 @import "tailwindcss";
 
 :root {
-  --ground: #f2f5f4;
+  --ground: #f5f6f7;
   --surface: #ffffff;
-  --sunk: #e7ecea;
-  --ink: #16211d;
-  --muted: #566259;
-  --faint: #7c8880;
-  --rule: #d6deda;
-  --rule-strong: #b9c4be;
-  --accent: #235c6b;
-  --accent-ink: #1b4854;
-  --accent-wash: #e3eeef;
+  --sunk: #e9edf0;
+  --ink: #14202b;
+  --muted: #4c5c68;
+  --faint: #74838d;
+  --rule: #d7dee3;
+  --rule-strong: #b7c2c9;
+
+  /* institutional navy — the "this belongs on a government site" signal */
+  --accent: #0f2a3f;
+  --accent-ink: #0f2a3f;
+  --accent-wash: #e4ebf0;
+
+  /* civic red, used sparingly: required marks, the identity banner */
+  --civic-red: #b5313a;
+  --civic-red-wash: #f6e6e7;
+
   --fill: #2f7a5a;
   --fill-wash: #e5f2eb;
   --mic: #b8511f;
@@ -30,6 +37,8 @@
   --color-accent: var(--accent);
   --color-accent-ink: var(--accent-ink);
   --color-accent-wash: var(--accent-wash);
+  --color-civic-red: var(--civic-red);
+  --color-civic-red-wash: var(--civic-red-wash);
   --color-fill: var(--fill);
   --color-fill-wash: var(--fill-wash);
   --color-mic: var(--mic);
@@ -40,17 +49,19 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --ground: #121614;
-    --surface: #1a211d;
-    --sunk: #0e1210;
+    --ground: #10161c;
+    --surface: #182028;
+    --sunk: #0c1116;
     --ink: #e7ede9;
-    --muted: #9aa69d;
-    --faint: #6e786f;
-    --rule: #29322d;
-    --rule-strong: #3c4640;
-    --accent: #6fb6c4;
-    --accent-ink: #86c6d3;
-    --accent-wash: #1b2e32;
+    --muted: #9aa9b3;
+    --faint: #6d7b84;
+    --rule: #263038;
+    --rule-strong: #3a4650;
+    --accent: #7fa9c9;
+    --accent-ink: #9dc0dd;
+    --accent-wash: #1c2b38;
+    --civic-red: #e08188;
+    --civic-red-wash: #331b1d;
     --fill: #7fcba1;
     --fill-wash: #16281f;
     --mic: #e58f5d;
