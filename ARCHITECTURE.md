@@ -94,6 +94,18 @@ Deployed *before* the app does anything real — ideally tonight. A domain
 from GoDaddy pointed at it. This is infrastructure, not a feature; get it
 inert-but-working early so it's a non-event on Sunday morning.
 
+## Stretch goals (only if core path is done with time to spare)
+
+- **Translation for non-official languages.** Extraction already preserves
+  the input language (tested: French in → French out, e.g. "45 rue Rideau"
+  stays French, not translated). That's correct as-is for English/French
+  since Ottawa is officially bilingual. A third language (Arabic, Mandarin,
+  Spanish, etc.) would extract accurately but into a language the real form
+  can't accept — translating those to English is a one-line prompt addition
+  if there's time, but adds testing surface. Do not start this before the
+  core flow (voice/text → fields → readback → confirm) is fully working
+  and demoed once end to end.
+
 ## What's explicitly out of scope
 
 - Real form submission to any actual government system
