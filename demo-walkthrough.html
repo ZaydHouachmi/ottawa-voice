@@ -1,0 +1,406 @@
+<title>Ottawa Voice Walkthrough</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --ground: #F2F5F4;
+    --surface: #FFFFFF;
+    --sunk: #E7ECEA;
+    --ink: #16211D;
+    --muted: #566259;
+    --faint: #7C8880;
+    --rule: #D6DEDA;
+    --rule-strong: #B9C4BE;
+    --accent: #235C6B;
+    --accent-ink: #1B4854;
+    --accent-wash: #E3EEEF;
+    --fill: #2F7A5A;
+    --fill-wash: #E5F2EB;
+    --mic: #B8511F;
+    --mic-wash: #F7E9DF;
+
+    --f-body: "Atkinson Hyperlegible Next", "Atkinson Hyperlegible", system-ui, -apple-system, sans-serif;
+    --f-mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #121614;
+      --surface: #1A211D;
+      --sunk: #0E1210;
+      --ink: #E7EDE9;
+      --muted: #9AA69D;
+      --faint: #6E786F;
+      --rule: #29322D;
+      --rule-strong: #3C4640;
+      --accent: #6FB6C4;
+      --accent-ink: #86C6D3;
+      --accent-wash: #1B2E32;
+      --fill: #7FCBA1;
+      --fill-wash: #16281F;
+      --mic: #E58F5D;
+      --mic-wash: #2E2015;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground: #121614;
+    --surface: #1A211D;
+    --sunk: #0E1210;
+    --ink: #E7EDE9;
+    --muted: #9AA69D;
+    --faint: #6E786F;
+    --rule: #29322D;
+    --rule-strong: #3C4640;
+    --accent: #6FB6C4;
+    --accent-ink: #86C6D3;
+    --accent-wash: #1B2E32;
+    --fill: #7FCBA1;
+    --fill-wash: #16281F;
+    --mic: #E58F5D;
+    --mic-wash: #2E2015;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--f-body);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap { max-width: 720px; margin: 0 auto; padding-inline: 20px; padding-block: 44px 88px; }
+
+  header { border-bottom: 2px solid var(--ink); padding-bottom: 20px; margin-bottom: 8px; }
+
+  .eyebrow {
+    font-family: var(--f-mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent-ink);
+    font-weight: 500;
+    margin: 0 0 12px;
+  }
+
+  h1 {
+    font-weight: 700;
+    font-size: clamp(1.8rem, 5.5vw, 2.5rem);
+    line-height: 1.08;
+    letter-spacing: -0.01em;
+    margin: 0 0 12px;
+    text-wrap: balance;
+  }
+
+  .standfirst { color: var(--muted); margin: 0; max-width: 58ch; font-size: 1.02rem; }
+
+  .badges { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+  .badge {
+    font-family: var(--f-mono);
+    font-size: 11px;
+    letter-spacing: 0.03em;
+    padding: 5px 10px;
+    border-radius: 999px;
+    background: var(--sunk);
+    color: var(--muted);
+    border: 1px solid var(--rule);
+  }
+
+  .steps { margin-top: 40px; display: flex; flex-direction: column; gap: 30px; }
+
+  .step { display: grid; grid-template-columns: 34px 1fr; gap: 0 16px; }
+
+  .step-rail {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .step-num {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: var(--ink);
+    color: var(--ground);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--f-mono);
+    font-weight: 500;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+  .step-line { width: 2px; flex: 1; background: var(--rule); margin-top: 6px; min-height: 20px; }
+  .step:last-child .step-line { display: none; }
+
+  .step-body h2 {
+    font-size: 1.08rem;
+    font-weight: 700;
+    margin: 4px 0 4px;
+    letter-spacing: -0.005em;
+  }
+  .step-cap { color: var(--muted); font-size: 0.93rem; margin: 0 0 14px; max-width: 56ch; }
+
+  /* device frame */
+  .frame {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  }
+  .frame-bar {
+    display: flex; align-items: center; gap: 6px;
+    padding: 9px 12px;
+    background: var(--sunk);
+    border-bottom: 1px solid var(--rule);
+  }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--rule-strong); }
+  .frame-url {
+    font-family: var(--f-mono);
+    font-size: 10.5px;
+    color: var(--faint);
+    margin-left: 6px;
+  }
+  .frame-body { padding: 16px; }
+
+  .mic-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .mic-btn {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: var(--mic-wash);
+    color: var(--mic);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    font-size: 16px;
+  }
+  .mic-btn.active { background: var(--mic); color: var(--surface); }
+  .input-field {
+    flex: 1;
+    border: 1px solid var(--rule-strong);
+    border-radius: 8px;
+    padding: 9px 12px;
+    font-size: 13.5px;
+    color: var(--muted);
+    background: var(--ground);
+    min-height: 20px;
+  }
+  .input-field.live { color: var(--ink); border-color: var(--accent); }
+
+  .waveform { display: flex; align-items: center; gap: 2px; height: 18px; margin-left: 2px; }
+  .waveform span {
+    width: 2.5px; background: var(--mic); border-radius: 2px; display: block;
+  }
+
+  .form-panel {
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .form-panel-head {
+    font-family: var(--f-mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--faint);
+    padding: 8px 12px;
+    background: var(--sunk);
+    border-bottom: 1px solid var(--rule);
+  }
+  .field {
+    display: flex; justify-content: space-between; gap: 12px;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--rule);
+    font-size: 13px;
+    align-items: baseline;
+  }
+  .field:last-child { border-bottom: none; }
+  .field-label { color: var(--faint); flex-shrink: 0; }
+  .field-value { font-weight: 600; text-align: right; }
+  .field-value.empty { color: var(--faint); font-weight: 400; font-style: italic; }
+  .field-value.fresh { color: var(--fill); background: var(--fill-wash); padding: 1px 6px; border-radius: 4px; }
+
+  .readback-bubble {
+    background: var(--accent-wash);
+    border-left: 3px solid var(--accent);
+    padding: 12px 14px;
+    border-radius: 0 8px 8px 0;
+    font-size: 13.5px;
+    color: var(--ink);
+    margin-top: 12px;
+  }
+  .readback-bubble .who {
+    font-family: var(--f-mono);
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--accent-ink);
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .btn-row { display: flex; gap: 8px; margin-top: 14px; }
+  .btn {
+    font-size: 13px; font-weight: 600;
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--rule-strong);
+    color: var(--muted);
+  }
+  .btn.primary { background: var(--fill); color: var(--surface); border-color: var(--fill); }
+
+  .done-card {
+    text-align: center;
+    padding: 22px 16px;
+  }
+  .done-check {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: var(--fill-wash); color: var(--fill);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 12px; font-size: 20px;
+  }
+  .done-title { font-weight: 700; font-size: 1rem; margin-bottom: 4px; }
+  .done-sub { color: var(--muted); font-size: 0.9rem; }
+
+  .footnote {
+    margin-top: 44px;
+    padding-top: 20px;
+    border-top: 1px solid var(--rule);
+    color: var(--faint);
+    font-size: 12.5px;
+    max-width: 60ch;
+  }
+
+  @media (max-width: 460px) {
+    .field { flex-direction: column; gap: 2px; }
+    .field-value { text-align: left; }
+  }
+</style>
+
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">Demo walkthrough · not the built app, a storyboard of it</p>
+    <h1>Ottawa Voice, start to finish</h1>
+    <p class="standfirst">Five states, one real example. This is what a judge watching the live demo actually sees, in order.</p>
+    <div class="badges">
+      <span class="badge">~90 seconds total</span>
+      <span class="badge">4 fields</span>
+      <span class="badge">works typed or spoken</span>
+      <span class="badge">also works in French</span>
+    </div>
+  </header>
+
+  <div class="steps">
+
+    <div class="step">
+      <div class="step-rail"><div class="step-num">1</div><div class="step-line"></div></div>
+      <div class="step-body">
+        <h2>Open the page</h2>
+        <p class="step-cap">A mic button and a text box — same input, your choice. The form beside it starts empty.</p>
+        <div class="frame">
+          <div class="frame-bar"><div class="dot"></div><div class="dot"></div><div class="dot"></div><span class="frame-url">ottawa-voice.app</span></div>
+          <div class="frame-body">
+            <div class="mic-row">
+              <div class="mic-btn">🎙</div>
+              <div class="input-field">Tell me about your situation, or tap the mic…</div>
+            </div>
+            <div class="form-panel">
+              <div class="form-panel-head">Hand in Hand — Recreation Fee Support</div>
+              <div class="field"><span class="field-label">Full name</span><span class="field-value empty">not yet provided</span></div>
+              <div class="field"><span class="field-label">Address</span><span class="field-value empty">not yet provided</span></div>
+              <div class="field"><span class="field-label">Household / dependents</span><span class="field-value empty">not yet provided</span></div>
+              <div class="field"><span class="field-label">Annual income</span><span class="field-value empty">not yet provided</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-rail"><div class="step-num">2</div><div class="step-line"></div></div>
+      <div class="step-body">
+        <h2>You speak — or type</h2>
+        <p class="step-cap">Same underlying function either way. If voice fails at demo time, typing this sentence produces an identical result.</p>
+        <div class="frame">
+          <div class="frame-bar"><div class="dot"></div><div class="dot"></div><div class="dot"></div><span class="frame-url">ottawa-voice.app</span></div>
+          <div class="frame-body">
+            <div class="mic-row">
+              <div class="mic-btn active">🎙</div>
+              <div class="waveform">
+                <span style="height:6px"></span><span style="height:14px"></span><span style="height:9px"></span>
+                <span style="height:17px"></span><span style="height:7px"></span><span style="height:12px"></span>
+                <span style="height:5px"></span><span style="height:15px"></span>
+              </div>
+            </div>
+            <div class="input-field live">"Hi, my name's Zayed Houachmi, I live at 123 Bank Street in Ottawa, I'm a student making about eighteen thousand a year, and I have one younger sibling I help support."</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-rail"><div class="step-num">3</div><div class="step-line"></div></div>
+      <div class="step-body">
+        <h2>Fields fill in live</h2>
+        <p class="step-cap">Gemini extracts structured values from that one sentence. This is the part the judges are actually watching.</p>
+        <div class="frame">
+          <div class="frame-bar"><div class="dot"></div><div class="dot"></div><div class="dot"></div><span class="frame-url">ottawa-voice.app</span></div>
+          <div class="frame-body">
+            <div class="form-panel">
+              <div class="form-panel-head">Hand in Hand — Recreation Fee Support</div>
+              <div class="field"><span class="field-label">Full name</span><span class="field-value fresh">Zayed Houachmi</span></div>
+              <div class="field"><span class="field-label">Address</span><span class="field-value fresh">123 Bank Street, Ottawa</span></div>
+              <div class="field"><span class="field-label">Household / dependents</span><span class="field-value fresh">1 dependent</span></div>
+              <div class="field"><span class="field-label">Annual income</span><span class="field-value fresh">$18,000</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-rail"><div class="step-num">4</div><div class="step-line"></div></div>
+      <div class="step-body">
+        <h2>It reads the answers back</h2>
+        <p class="step-cap">ElevenLabs speaks the summary. You confirm, or correct one field by typing directly into it.</p>
+        <div class="frame">
+          <div class="frame-bar"><div class="dot"></div><div class="dot"></div><div class="dot"></div><span class="frame-url">ottawa-voice.app</span></div>
+          <div class="frame-body">
+            <div class="readback-bubble">
+              <span class="who">🔊 spoken aloud</span>
+              "Here's what I have: Zayed Houachmi, 123 Bank Street, one dependent, income $18,000. Say confirm, or tell me what to change."
+            </div>
+            <div class="btn-row">
+              <div class="btn primary">Confirm</div>
+              <div class="btn">Edit a field</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-rail"><div class="step-num">5</div></div>
+      <div class="step-body">
+        <h2>Done</h2>
+        <p class="step-cap">A completed summary, ready to bring to the real application. Nothing is submitted anywhere — that's the explicit, honest scope.</p>
+        <div class="frame">
+          <div class="frame-bar"><div class="dot"></div><div class="dot"></div><div class="dot"></div><span class="frame-url">ottawa-voice.app</span></div>
+          <div class="frame-body">
+            <div class="done-card">
+              <div class="done-check">✓</div>
+              <div class="done-title">Your application is filled in</div>
+              <div class="done-sub">Saved to your account · log back in anytime to finish or edit</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <p class="footnote">
+    Form fields modeled on the shape of the City of Ottawa's real Hand in Hand recreation and culture fee support program — not a copy of the official document, and nothing here files anything with the City. The demo persona above is Zayed's own name, used as the example.
+  </p>
+
+</div>
