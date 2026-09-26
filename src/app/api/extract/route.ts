@@ -84,11 +84,12 @@ export async function POST(req: Request) {
   }
 
   try {
-    // Race against a hard timeout. Discovered by testing: on a rate-limit
-    // error the SDK appears to retry internally rather than failing fast,
-    // which hung the whole request until the CLIENT gave up - on a live
-    // demo that reads as a frozen page, not an error. This guarantees we
-    // always respond within a few seconds, whatever the underlying cause.
+    // Race against a hard timeout. Measured directly: a normal successful
+    // extraction takes ~5-6s; a rate-limit rejection specifically takes the
+    // SDK ~30s+ to surface (it appears to retry internally before giving
+    // up). 20s splits the difference - enough headroom that a legitimately
+    // slow-but-working call isn't cut off, short enough that a live demo
+    // never sits frozen for 30+ seconds waiting on a doomed request.
     const interaction = await Promise.race([
       client.interactions.create({
         model: "gemini-3.8-flash",
@@ -100,7 +101,7 @@ export async function POST(req: Request) {
         },
       }),
       new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error("Gemini request timed out after 12s")), 12_000),
+        setTimeout(() => reject(new Error("Gemini request timed out after 20s")), 20_000),
       ),
     ]);
 
