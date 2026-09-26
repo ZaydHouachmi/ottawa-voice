@@ -1,26 +1,64 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --ground: #f2f5f4;
+  --surface: #ffffff;
+  --sunk: #e7ecea;
+  --ink: #16211d;
+  --muted: #566259;
+  --faint: #7c8880;
+  --rule: #d6deda;
+  --rule-strong: #b9c4be;
+  --accent: #235c6b;
+  --accent-ink: #1b4854;
+  --accent-wash: #e3eeef;
+  --fill: #2f7a5a;
+  --fill-wash: #e5f2eb;
+  --mic: #b8511f;
+  --mic-wash: #f7e9df;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-ground: var(--ground);
+  --color-surface: var(--surface);
+  --color-sunk: var(--sunk);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-rule: var(--rule);
+  --color-rule-strong: var(--rule-strong);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-accent-wash: var(--accent-wash);
+  --color-fill: var(--fill);
+  --color-fill-wash: var(--fill-wash);
+  --color-mic: var(--mic);
+  --color-mic-wash: var(--mic-wash);
+  --font-sans: var(--font-body);
+  --font-mono: var(--font-mono);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --ground: #121614;
+    --surface: #1a211d;
+    --sunk: #0e1210;
+    --ink: #e7ede9;
+    --muted: #9aa69d;
+    --faint: #6e786f;
+    --rule: #29322d;
+    --rule-strong: #3c4640;
+    --accent: #6fb6c4;
+    --accent-ink: #86c6d3;
+    --accent-wash: #1b2e32;
+    --fill: #7fcba1;
+    --fill-wash: #16281f;
+    --mic: #e58f5d;
+    --mic-wash: #2e2015;
   }
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--ground);
+  color: var(--ink);
 }
