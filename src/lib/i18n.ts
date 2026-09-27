@@ -164,7 +164,6 @@ const strings = {
   signedInAs: { "en-US": "Signed in", "fr-CA": "Connecté" },
   logOut: { "en-US": "Log out", "fr-CA": "Se déconnecter" },
   logIn: { "en-US": "Log in", "fr-CA": "Se connecter" },
-  transcribing: { "en-US": "Transcribing…", "fr-CA": "Transcription en cours…" },
 } as const;
 
 export type StringKey = keyof typeof strings;
