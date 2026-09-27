@@ -33,8 +33,8 @@ Paste the questions from any form: a web page, a PDF, an email. Gemini turns the
 |---|---|
 | **Next.js 16** (App Router, Turbopack), React 19, TypeScript, Tailwind v4 | App and API routes in one project |
 | **Gemini API** (`gemini-3.8-flash`, structured JSON output) | Turning free-form speech or text into form fields |
-| **ElevenLabs** (`eleven_multilingual_v2`, `scribe_v2`) | Both voice directions: speech-to-text for answers, and the spoken prompt, follow-up, and readback, EN and FR |
-| **Web Speech API** | Fallback speech recognition for browsers without audio recording support |
+| **ElevenLabs** (`eleven_multilingual_v2`) | Spoken prompt, follow-up, and readback, EN and FR in one voice |
+| **Web Speech API** | Live speech recognition in the browser (words appear as you speak) |
 | **Auth0** | Login plus save/resume (one JSON document per user) |
 | **Vultr** + Caddy + PM2 | Hosting, automatic HTTPS, process supervision |
 | **GoDaddy Registry** | speakgov.com |
@@ -61,8 +61,7 @@ typing ─┘                                                          │
 ## Engineering notes
 
 - **Why every schema field is `required`.** With an all-optional JSON schema, the model would reason about every field internally, then write only one of them to its output. Making every field required and nullable forces it to consider each one. The nulls are stripped out before anything reaches the client.
-- **Why speech-to-text moved to ElevenLabs.** The browser's built-in recognition doesn't exist in Firefox, is unreliable in Safari, and heard "Zayd Houachmi" as "Dave". The mic now records audio and sends it to ElevenLabs, with the browser's recognition as a fallback.
-- **Why voice never auto-submits.** Speech recognition struggles with uncommon names. Sending a misheard name straight to the model turned one mistake into someone spelling their name out loud over and over. Now the transcript lands in the text box for a quick check first.
+- **Why voice never auto-submits.** Browser speech recognition struggles with uncommon names. Sending a misheard name straight to the model turned one mistake into someone spelling their name out loud over and over. Now the transcript lands in the text box for a quick check first.
 - **Why the language is always explicit.** Inheriting the operating system's locale silently switched both speech recognition and read-aloud to French on a French-language machine, even for someone speaking English.
 - **Accessibility.** A polite live region narrates what was filled in and what's still missing, errors use `role="alert"`, required fields are marked for screen readers, and every animation respects `prefers-reduced-motion`.
 
