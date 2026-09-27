@@ -13,7 +13,13 @@ import {
 import { Mascot } from "@/components/Mascot";
 import { t, fieldLabel } from "@/lib/i18n";
 
-type Status = "idle" | "listening" | "extracting" | "ready" | "confirmed";
+type Status =
+  | "idle"
+  | "listening"
+  | "transcribing"
+  | "extracting"
+  | "ready"
+  | "confirmed";
 
 function formatFieldValue(type: FieldType, value: string | number) {
   // Locale fixed to en-US so this renders identically regardless of the
@@ -111,6 +117,13 @@ export function FormExperience({ mode }: { mode: "handInHand" | "custom" }) {
   const progressLoadedRef = useRef(false);
 
   const recognitionRef = useRef<SpeechRecognition | null>(null);
+  // ElevenLabs STT is the primary mic path (works in Firefox and Safari,
+  // where SpeechRecognition doesn't exist or is flaky); Web Speech is only
+  // the fallback when MediaRecorder/getUserMedia themselves aren't there.
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const mediaStreamRef = useRef<MediaStream | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const [mediaRecorderSupported, setMediaRecorderSupported] = useState(false);
 
   // /any-form: the form comes from text someone pasted, parsed by
   // /api/parse-form. Until then there's no form yet, just the paste step.
@@ -135,8 +148,17 @@ export function FormExperience({ mode }: { mode: "handInHand" | "custom" }) {
     : t("modeledOn", speechLang);
 
   useEffect(() => {
-    const Ctor = window.SpeechRecognition ?? window.webkitSpeechRecognition;
-    setMicSupported(Boolean(Ctor));
+    const hasSpeechRecognition = Boolean(
+      window.SpeechRecognition ?? window.webkitSpeechRecognition,
+    );
+    const hasMediaRecorder =
+      typeof window.MediaRecorder !== "undefined" &&
+      Boolean(navigator.mediaDevices?.getUserMedia);
+    setMediaRecorderSupported(hasMediaRecorder);
+    // Either path counts as "has a mic" - this is what makes Firefox and
+    // Safari (no/flaky SpeechRecognition, but real getUserMedia +
+    // MediaRecorder support) get a working mic button.
+    setMicSupported(hasSpeechRecognition || hasMediaRecorder);
   }, []);
 
   // Load saved progress once, right after login. Only merges in saved
@@ -257,6 +279,7 @@ export function FormExperience({ mode }: { mode: "handInHand" | "custom" }) {
 
   const resetCustomForm = () => {
     recognitionRef.current?.stop();
+    abortRecording();
     if (user) {
       fetch("/api/progress", {
         method: "POST",
@@ -272,7 +295,97 @@ export function FormExperience({ mode }: { mode: "handInHand" | "custom" }) {
     setExtractCount(0);
   };
 
-  const startListening = useCallback(() => {
+  // The transcript still lands in the text box for review, exactly like the
+  // Web Speech path below - never auto-submitted to extraction. A misheard
+  // name going straight to the model is the bug that started all of this.
+  // Not wrapped in useCallback: it's only ever called from inside
+  // startListening's own recorder.onstop handler, never passed down as a
+  // prop, so there's no referential-stability need - and the React
+  // Compiler can't preserve a useCallback here once it's invoked from
+  // that nested event-handler closure anyway.
+  const transcribeAudio = async (blob: Blob) => {
+    setStatus("transcribing");
+    try {
+      const body = new FormData();
+      body.set("audio", blob, "speech");
+      body.set("language", speechLang);
+      const res = await fetch("/api/transcribe", { method: "POST", body });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Transcription failed");
+      setText((data.text ?? "").trim());
+      setStatus("idle");
+    } catch (err) {
+      console.error(err);
+      setStatus("idle");
+      setError(t("micErrorText", speechLang));
+    }
+  };
+
+  // Stops any in-flight recording without transcribing it - used when the
+  // form itself is being torn down (e.g. switching to a different pasted
+  // form), not when the person deliberately stops to submit what they said.
+  const abortRecording = () => {
+    if (mediaRecorderRef.current) {
+      mediaRecorderRef.current.onstop = null;
+      mediaRecorderRef.current.stop();
+      mediaRecorderRef.current = null;
+    }
+    mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
+    mediaStreamRef.current = null;
+    audioChunksRef.current = [];
+  };
+
+  const startListening = useCallback(async () => {
+    setError(null);
+    setText("");
+    voiceRoundRef.current = true;
+
+    if (mediaRecorderSupported) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaStreamRef.current = stream;
+        audioChunksRef.current = [];
+        // Let the browser pick its own default mime type when webm isn't
+        // available (Safari) instead of forcing one that silently produces
+        // an empty recording.
+        const mimeType = window.MediaRecorder.isTypeSupported("audio/webm")
+          ? "audio/webm"
+          : undefined;
+        const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+        recorder.ondataavailable = (e) => {
+          if (e.data.size > 0) audioChunksRef.current.push(e.data);
+        };
+        recorder.onstop = () => {
+          // Always release the mic once recording stops, no matter what
+          // happens to the upload next - holding the stream open is a
+          // privacy smell and leaves the browser's "recording" indicator on.
+          mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
+          mediaStreamRef.current = null;
+          const finishedBlob = new Blob(audioChunksRef.current, {
+            type: recorder.mimeType || "audio/webm",
+          });
+          audioChunksRef.current = [];
+          mediaRecorderRef.current = null;
+          if (finishedBlob.size === 0) {
+            setStatus("idle");
+            setError(t("micErrorText", speechLang));
+            return;
+          }
+          transcribeAudio(finishedBlob);
+        };
+        mediaRecorderRef.current = recorder;
+        recorder.start();
+        setStatus("listening");
+      } catch (err) {
+        console.error(err);
+        setStatus("idle");
+        setError(t("micErrorText", speechLang));
+      }
+      return;
+    }
+
+    // Fallback for a browser with neither getUserMedia nor MediaRecorder -
+    // unchanged Web Speech API path.
     const Ctor = window.SpeechRecognition ?? window.webkitSpeechRecognition;
     if (!Ctor) return;
 
@@ -317,14 +430,20 @@ export function FormExperience({ mode }: { mode: "handInHand" | "custom" }) {
     };
 
     recognitionRef.current = recognition;
-    voiceRoundRef.current = true;
     setStatus("listening");
-    setError(null);
-    setText("");
     recognition.start();
-  }, [extract, speechLang]);
+    // transcribeAudio deliberately omitted - it's a plain function
+    // redeclared every render (see its definition above), not a stable
+    // dependency; startListening only needs to react to speechLang and
+    // mediaRecorderSupported actually changing.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [speechLang, mediaRecorderSupported]);
 
   const stopListening = useCallback(() => {
+    if (mediaRecorderRef.current) {
+      mediaRecorderRef.current.stop();
+      return;
+    }
     recognitionRef.current?.stop();
   }, []);
 
@@ -454,7 +573,9 @@ export function FormExperience({ mode }: { mode: "handInHand" | "custom" }) {
   // changes on every keystroke, so it can't be the live region itself
   // without spamming announcements while someone types.
   const announcement =
-    status === "extracting"
+    status === "transcribing"
+      ? t("transcribing", speechLang)
+      : status === "extracting"
       ? t("readingThat", speechLang)
       : status === "ready" && extractCount > 0
         ? `${t("filledIn", speechLang)} ${formFields
@@ -627,7 +748,7 @@ export function FormExperience({ mode }: { mode: "handInHand" | "custom" }) {
                   key={lang}
                   type="button"
                   onClick={() => setSpeechLang(lang)}
-                  disabled={status === "listening"}
+                  disabled={status === "listening" || status === "transcribing"}
                   className={`px-3 py-1 transition-colors disabled:opacity-50 ${
                     speechLang === lang
                       ? "bg-ink text-ground"
@@ -643,7 +764,7 @@ export function FormExperience({ mode }: { mode: "handInHand" | "custom" }) {
             <button
               type="button"
               onClick={status === "listening" ? stopListening : startListening}
-              disabled={!micSupported}
+              disabled={!micSupported || status === "transcribing"}
               aria-label={
                 status === "listening"
                   ? t("stopListeningAria", speechLang)
@@ -683,9 +804,11 @@ export function FormExperience({ mode }: { mode: "handInHand" | "custom" }) {
             <span className="flex items-center gap-1.5 text-xs text-faint">
               {status === "listening" ? (
                 t("listening", speechLang)
-              ) : status === "extracting" ? (
+              ) : status === "transcribing" || status === "extracting" ? (
                 <>
-                  {t("readingThat", speechLang)}
+                  {status === "transcribing"
+                    ? t("transcribing", speechLang)
+                    : t("readingThat", speechLang)}
                   <span className="thinking-dots inline-flex gap-0.5" aria-hidden>
                     <span className="h-1 w-1 rounded-full bg-faint" />
                     <span className="h-1 w-1 rounded-full bg-faint" />
@@ -701,7 +824,7 @@ export function FormExperience({ mode }: { mode: "handInHand" | "custom" }) {
             <button
               type="button"
               onClick={handleTextSubmit}
-              disabled={!text.trim() || status === "extracting"}
+              disabled={!text.trim() || status === "extracting" || status === "transcribing"}
               className="rounded-lg bg-ink px-4 py-1.5 text-sm font-semibold text-ground disabled:opacity-30"
             >
               {status === "extracting" ? t("reading", speechLang) : t("tellIt", speechLang)}
