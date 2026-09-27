@@ -23,6 +23,10 @@ SpeakGov is a conversational layer in front of an existing form. It doesn't repl
 
 Every step works in English and French. The language is an explicit choice, never guessed from the browser. At no point from start to finish do you need to read text to use it.
 
+### Any form ([speakgov.com/any-form](https://speakgov.com/any-form), experimental)
+
+Paste the questions from any form: a web page, a PDF, an email. Gemini turns them into a field list, marking required fields and turning checkbox and yes/no options into hints. From there it's the same flow: spoken prompt, voice or typed answers, follow-up for what's missing, readback, and print. Someone, say a caseworker or a family member, can paste the form once, and the person applying fills it in by talking. Pasted forms are never saved, and the server re-validates the parsed form on every request, since it comes from untrusted text.
+
 ## Stack
 
 | Piece | Used for |
@@ -47,11 +51,12 @@ typing ─┘                                                          │
                                                         readback ─► confirm
 ```
 
-- `src/lib/schema.ts` defines the one form: 8 fields, 3 of them required.
-- `src/app/api/extract/route.ts` handles Gemini extraction with a strict JSON schema.
+- `src/lib/schema.ts` defines the Hand in Hand form (8 fields, 3 required) and validates pasted forms.
+- `src/app/api/extract/route.ts` handles Gemini extraction with a strict JSON schema, for the default form or a pasted one.
+- `src/app/api/parse-form/route.ts` turns pasted form text into a field list.
 - `src/app/api/speak/route.ts` handles ElevenLabs text-to-speech. If it's unavailable, the browser's own speech synthesis takes over.
 - `src/app/api/progress/route.ts` handles save/resume, gated by Auth0.
-- `src/app/page.tsx` is the whole interface.
+- `src/components/FormExperience.tsx` is the whole interface. It's shared by `/` and `/any-form`.
 
 ## Engineering notes
 
@@ -72,4 +77,4 @@ Keys: `GOOGLE_API_KEY` and `ELEVENLABS_API_KEY` (optional: `ELEVENLABS_VOICE_ID`
 
 ## Honest scope
 
-This is one form, done completely, on purpose. It's modeled on the shape of Ottawa's Hand in Hand program, not copied from it, and nothing is submitted to the City. Someone who speaks neither English nor French still isn't served, the same as with a paper form today.
+The Hand in Hand form is the polished, fully tested flow. It's modeled on the shape of Ottawa's program, not copied from it, and nothing is submitted to the City. The any-form mode is labeled experimental: it works well on simple forms, but multi-page forms and conditional sections ("if yes, answer 4b") aren't handled. Someone who speaks neither English nor French still isn't served, the same as with a paper form today.

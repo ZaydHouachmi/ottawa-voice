@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
-import { handInHandForm, type FormValues } from "@/lib/schema";
+import {
+  handInHandForm,
+  sanitizeFormSchema,
+  type FormSchema,
+  type FormValues,
+} from "@/lib/schema";
 
 // Constructed per-request, not at module load, so a missing key fails the
 // request cleanly instead of crashing the whole route at build/boot time.
@@ -12,10 +17,10 @@ function getClient() {
   return new GoogleGenAI({ apiKey });
 }
 
-function buildJsonSchema() {
+function buildJsonSchema(form: FormSchema) {
   const properties: Record<string, { type: string[]; description: string }> = {};
   const required: string[] = [];
-  for (const field of handInHandForm.fields) {
+  for (const field of form.fields) {
     // IMPORTANT: every field is schema-`required` and type-nullable, even
     // though the product behavior we want is "omit fields not mentioned".
     // Discovered by testing (see scripts/debug-extract.mjs): with an
@@ -36,13 +41,13 @@ function buildJsonSchema() {
   return { type: "object", properties, required };
 }
 
-function buildPrompt(text: string) {
-  const fieldList = handInHandForm.fields
+function buildPrompt(text: string, form: FormSchema) {
+  const fieldList = form.fields
     .map((f) => `- ${f.key}: ${f.label}${f.hint ? ` (${f.hint})` : ""}`)
     .join("\n");
 
   return `You are extracting form field values from something a person said out loud
-or typed, for a form titled "${handInHandForm.title}".
+or typed, for a form titled "${form.title}".
 
 Output a JSON object with EVERY field below present as a key. Check each
 field independently. If the person actually stated a value for a field, use
@@ -61,7 +66,7 @@ ${text}
 }
 
 export async function POST(req: Request) {
-  let body: { text?: string };
+  let body: { text?: string; form?: unknown };
   try {
     body = await req.json();
   } catch {
@@ -71,6 +76,20 @@ export async function POST(req: Request) {
   const text = body.text?.trim();
   if (!text) {
     return NextResponse.json({ error: "Missing 'text' field" }, { status: 400 });
+  }
+  if (text.length > 5000) {
+    return NextResponse.json({ error: "Text too long" }, { status: 413 });
+  }
+
+  // No `form` = the Hand in Hand demo. A pasted form (the /any-form page)
+  // arrives from the client, so it's re-validated here, never trusted as-is.
+  let form: FormSchema = handInHandForm;
+  if (body.form !== undefined) {
+    const custom = sanitizeFormSchema(body.form);
+    if (!custom) {
+      return NextResponse.json({ error: "Invalid form" }, { status: 400 });
+    }
+    form = custom;
   }
 
   let client: GoogleGenAI;
@@ -93,11 +112,11 @@ export async function POST(req: Request) {
     const interaction = await Promise.race([
       client.interactions.create({
         model: "gemini-3.8-flash",
-        input: buildPrompt(text),
+        input: buildPrompt(text, form),
         response_format: {
           type: "text",
           mime_type: "application/json",
-          schema: buildJsonSchema(),
+          schema: buildJsonSchema(form),
         },
       }),
       new Promise<never>((_, reject) =>
@@ -123,9 +142,10 @@ export async function POST(req: Request) {
     // Drop null/empty values so "not mentioned" reliably means "absent key",
     // never a null or empty-string field the UI would have to special-case.
     const fields: FormValues = {};
-    for (const [key, value] of Object.entries(parsed)) {
-      if (value !== null && value !== "" && value !== undefined) {
-        fields[key] = value as string | number;
+    for (const field of form.fields) {
+      const value = parsed[field.key];
+      if (typeof value === "string" ? value.trim() !== "" : typeof value === "number") {
+        fields[field.key] = value as string | number;
       }
     }
 

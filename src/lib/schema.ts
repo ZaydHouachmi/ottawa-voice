@@ -75,3 +75,55 @@ export const handInHandForm: FormSchema = {
 
 /** Extracted values, keyed by FormField.key. Missing key = not yet provided. */
 export type FormValues = Record<string, string | number>;
+
+export const MAX_CUSTOM_FIELDS = 25;
+const FIELD_TYPES: FieldType[] = ["text", "number", "currency"];
+
+export function slugifyKey(label: string, index: number): string {
+  const base = label
+    .normalize("NFKD")
+    .replace(/[^\w\s]/g, "")
+    .trim()
+    .split(/\s+/)
+    .slice(0, 4)
+    .map((w, i) => (i === 0 ? w.toLowerCase() : w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()))
+    .join("")
+    .slice(0, 40);
+  return `${base || "field"}_${index}`;
+}
+
+// A pasted form is untrusted input (it came from an arbitrary web page, via
+// the client), so both the parse route's output and anything the client
+// sends back to /api/extract go through this before reaching a prompt.
+export function sanitizeFormSchema(input: unknown): FormSchema | null {
+  if (!input || typeof input !== "object") return null;
+  const raw = input as { title?: unknown; fields?: unknown };
+  if (!Array.isArray(raw.fields) || raw.fields.length === 0) return null;
+
+  const title =
+    typeof raw.title === "string" && raw.title.trim() ? raw.title.trim().slice(0, 120) : "Form";
+  const seen = new Set<string>();
+  const fields: FormField[] = [];
+  for (const f of raw.fields.slice(0, MAX_CUSTOM_FIELDS)) {
+    if (!f || typeof f !== "object") continue;
+    const ff = f as Record<string, unknown>;
+    const label = typeof ff.label === "string" ? ff.label.trim().slice(0, 120) : "";
+    if (!label) continue;
+    let key =
+      typeof ff.key === "string" && /^[A-Za-z0-9_]{1,60}$/.test(ff.key)
+        ? ff.key
+        : slugifyKey(label, fields.length);
+    if (seen.has(key)) key = slugifyKey(label, fields.length);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    fields.push({
+      key,
+      label,
+      type: FIELD_TYPES.includes(ff.type as FieldType) ? (ff.type as FieldType) : "text",
+      required: ff.required === true,
+      hint: typeof ff.hint === "string" && ff.hint.trim() ? ff.hint.trim().slice(0, 200) : undefined,
+    });
+  }
+  if (fields.length === 0) return null;
+  return { id: "custom", title, modeledOn: "", fields };
+}

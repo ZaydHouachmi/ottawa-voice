@@ -82,6 +82,45 @@ const strings = {
     "en-US": "Not saved to an account. Log in to keep it, or print a copy.",
     "fr-CA": "Non enregistré dans un compte. Connectez-vous pour le garder, ou imprimez une copie.",
   },
+  // /any-form - fill in a form someone pasted from anywhere
+  tryAnotherForm: { "en-US": "Have a different form? Paste it in", "fr-CA": "Un autre formulaire ? Collez-le ici" },
+  backToHandInHand: { "en-US": "Back to the Hand in Hand form", "fr-CA": "Retour au formulaire Hand in Hand" },
+  pasteTitle: { "en-US": "Fill in any form by talking", "fr-CA": "Remplissez n'importe quel formulaire en parlant" },
+  pasteIntro: {
+    "en-US":
+      "Copy the questions from any form — a website, a PDF, an email — and paste them below. SpeakGov turns them into a form you can fill in by voice.",
+    "fr-CA":
+      "Copiez les questions de n'importe quel formulaire — un site Web, un PDF, un courriel — et collez-les ci-dessous. ParlezGouv en fait un formulaire que vous pouvez remplir à voix haute.",
+  },
+  pastePlaceholder: { "en-US": "Paste the form's questions here…", "fr-CA": "Collez les questions du formulaire ici…" },
+  readThisForm: { "en-US": "Read this form", "fr-CA": "Lire ce formulaire" },
+  readingForm: { "en-US": "Reading the form…", "fr-CA": "Lecture du formulaire…" },
+  parseErrorText: {
+    "en-US": "Couldn't find questions to fill in there. Try pasting just the form's fields.",
+    "fr-CA": "Aucune question à remplir trouvée. Essayez de coller seulement les champs du formulaire.",
+  },
+  experimentalNote: {
+    "en-US": "Experimental: works best on simple forms. Checkboxes and dates become short answers.",
+    "fr-CA": "Expérimental : fonctionne mieux avec des formulaires simples. Cases à cocher et dates deviennent des réponses courtes.",
+  },
+  formReadCount: { "en-US": "Form read: {n} questions", "fr-CA": "Formulaire lu : {n} questions" },
+  useDifferentForm: { "en-US": "Use a different form", "fr-CA": "Utiliser un autre formulaire" },
+  customDisclaimer: {
+    "en-US": "Built from a form you pasted. Nothing here is submitted anywhere, and pasted forms aren't saved.",
+    "fr-CA": "Créé à partir d'un formulaire que vous avez collé. Rien n'est transmis, et les formulaires collés ne sont pas enregistrés.",
+  },
+  doneSubCustom: {
+    "en-US": "Pasted forms aren't saved. Print a copy to keep it.",
+    "fr-CA": "Les formulaires collés ne sont pas enregistrés. Imprimez une copie pour la garder.",
+  },
+  customPromptLead: { "en-US": "Here's what this form asks for.", "fr-CA": "Voici ce que demande ce formulaire." },
+  customPromptRequired: { "en-US": "At minimum, tell me", "fr-CA": "Au minimum, dites-moi" },
+  customPromptOptional: { "en-US": "You can also mention", "fr-CA": "Vous pouvez aussi mentionner" },
+  customPromptAll: { "en-US": "Tell me", "fr-CA": "Dites-moi" },
+  customPromptClose: {
+    "en-US": "You can say it all at once, in your own words.",
+    "fr-CA": "Vous pouvez tout dire d'un coup, dans vos propres mots.",
+  },
   printButton: { "en-US": "Print or save as PDF", "fr-CA": "Imprimer ou enregistrer en PDF" },
   printEyebrow: { "en-US": "Application summary", "fr-CA": "Résumé de la demande" },
   printPrepared: { "en-US": "Prepared with SpeakGov on", "fr-CA": "Préparé avec ParlezGouv le" },
