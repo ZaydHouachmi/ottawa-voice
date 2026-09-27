@@ -10,15 +10,15 @@ Open SpeakGov and, before you're asked to type or say anything, you can tap one 
 
 > "Hi, my name's Zayd Houachmi, I live at 110 Dunbarton Court in Ottawa, I have two dependents, and my annual income is about 50 thousand dollars."
 
-Gemini extracts the answers for a real program's eight-field form (modeled on the City of Ottawa's Hand in Hand recreation fee support) and they type themselves in live on screen. Leave out something required and it tells you, out loud if you were speaking: _"Got it. I still need your address and your annual household income."_ Answer just that part and it merges in. You review what it heard — correcting a field is one tap — then confirm, and ElevenLabs reads the completed summary back to you before you're done. Log in with Auth0 and your progress saves automatically, so a half-filled form is there when you come back.
+Gemini extracts the answers for a real program's eight-field form (modeled on the City of Ottawa's Hand in Hand recreation fee support) and they type themselves in live on screen. Leave out something required and it tells you, out loud if you were speaking: _"Got it. I still need your address and your annual household income."_ Answer just that part and it merges in. You review what it heard — correcting a field is one tap — then confirm, and ElevenLabs reads the completed summary back to you before you're done. Once it's confirmed, you can print it or save it as a PDF to keep or bring to a service counter. Log in with Auth0 and your progress saves automatically, so a half-filled form is there when you come back.
 
 Both directions are spoken, not just one. Reading text is never required to use the product start to finish — which matters, because a product that only reads your answer _back_ to you still assumed you could read the question in the first place.
 
-The whole thing works in English or French, chosen explicitly rather than guessed from your browser — Ottawa is officially bilingual, and a French-speaking user gets a fully French interface, not just a translated label here and there.
+The whole thing works in English or French, chosen explicitly rather than guessed from your browser — Ottawa is officially bilingual, and a French-speaking user gets a fully French interface, not just a translated label here and there. And for screen-reader users, the page narrates what just happened ("Filled in: full name, address. I still need your income."), marks required fields, and respects reduced-motion settings.
 
 ## How we built it
 
-Next.js 16 (App Router, Turbopack) deployed on a Vultr VPS behind Caddy, which handles automatic HTTPS via Let's Encrypt for our GoDaddy domain, speakgov.com. Gemini 3.8 Flash does the structured extraction from raw speech/text. ElevenLabs handles the spoken readback. Auth0 gates a simple save/resume feature — one JSON blob per user, nothing more elaborate than the feature actually needs. PM2 keeps the Node process alive and restarts it on crash.
+Next.js 16 (App Router, Turbopack) deployed on a Vultr VPS behind Caddy, which handles automatic HTTPS via Let's Encrypt for our GoDaddy domain, speakgov.com. The browser's Web Speech API does live speech recognition, with words appearing as you speak. Gemini 3.8 Flash does the structured extraction from raw speech/text, and on /any-form it also turns a pasted form into a field list. ElevenLabs voices every spoken moment: the "what do I need to say" prompt, the "I still need…" follow-up, and the readback. Auth0 gates a simple save/resume feature — one JSON blob per user, nothing more elaborate than the feature actually needs. PM2 keeps the Node process alive and restarts it on crash.
 
 The build itself leaned heavily on Claude Code as a development partner — not just for writing code, but for the actual debugging work described below: reading raw API error payloads, diffing SDK source when documentation didn't match reality, and testing every fix against the live deployment rather than assuming it worked. Every commit in the repo reflects that collaboration honestly.
 
@@ -41,6 +41,8 @@ A solo build that's fully deployed, on a real domain, with real HTTPS, and every
 ## What we learned
 
 That the parts of a hackathon project people don't show off — a schema that forces a model to actually try, a rate-limit timeout, a language toggle that's honored everywhere instead of half the app — are usually where the real reliability comes from. And that when documentation and reality disagree, the fastest path is reading the actual source or the actual error, not guessing a second and third time.
+
+We also learned something about voice products the hard way: late in the build we swapped the browser's recognizer for a server-side speech-to-text model. It was more accurate on names, but you had to stop talking before any words appeared. After trying it live, we reverted it within hours. For something you talk to, seeing your words appear as you speak mattered more than a slightly better transcript.
 
 ## What's next for SpeakGov
 
