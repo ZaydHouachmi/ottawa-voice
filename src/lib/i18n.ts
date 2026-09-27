@@ -9,8 +9,12 @@ export type Lang = "en-US" | "fr-CA";
 export const fieldLabels: Record<string, Record<Lang, string>> = {
   fullName: { "en-US": "Full name", "fr-CA": "Nom complet" },
   address: { "en-US": "Address", "fr-CA": "Adresse" },
+  phoneNumber: { "en-US": "Phone number", "fr-CA": "Numéro de téléphone" },
+  email: { "en-US": "Email address", "fr-CA": "Adresse courriel" },
   dependents: { "en-US": "Number of dependents", "fr-CA": "Personnes à charge" },
+  householdSize: { "en-US": "Household size", "fr-CA": "Taille du ménage" },
   annualIncome: { "en-US": "Annual household income", "fr-CA": "Revenu annuel du ménage" },
+  activityRequested: { "en-US": "Program requested", "fr-CA": "Programme demandé" },
 };
 
 const strings = {
@@ -34,9 +38,9 @@ const strings = {
   },
   whatToSayPrompt: {
     "en-US":
-      "Here's what I need. Tell me your full name, your address, how many dependents you have, and your yearly household income. You can say it all at once, in your own words.",
+      "Here's what I need. At minimum, tell me your full name, your address, and your yearly household income. You can also mention a phone number or email, how many dependents you have and your household size, and which recreation program you'd like fee assistance for. You can say it all at once, in your own words.",
     "fr-CA":
-      "Voici ce dont j'ai besoin. Dites-moi votre nom complet, votre adresse, le nombre de personnes à votre charge, et votre revenu annuel du ménage. Vous pouvez tout dire d'un coup, dans vos propres mots.",
+      "Voici ce dont j'ai besoin. Au minimum, dites-moi votre nom complet, votre adresse, et votre revenu annuel du ménage. Vous pouvez aussi mentionner un numéro de téléphone ou une adresse courriel, le nombre de personnes à votre charge et la taille de votre ménage, ainsi que le programme de loisirs pour lequel vous souhaitez une aide aux frais. Vous pouvez tout dire d'un coup, dans vos propres mots.",
   },
   placeholderWithMic: {
     "en-US": "Tell me about your situation, or tap the mic…",

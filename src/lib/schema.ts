@@ -29,6 +29,20 @@ export const handInHandForm: FormSchema = {
     { key: "fullName", label: "Full name", type: "text", required: true },
     { key: "address", label: "Address", type: "text", required: true },
     {
+      key: "phoneNumber",
+      label: "Phone number",
+      type: "text",
+      required: false,
+      hint: "A phone number for the city to reach the applicant, if mentioned.",
+    },
+    {
+      key: "email",
+      label: "Email address",
+      type: "text",
+      required: false,
+      hint: "An email address, if mentioned.",
+    },
+    {
       key: "dependents",
       label: "Number of dependents",
       type: "number",
@@ -36,11 +50,25 @@ export const handInHandForm: FormSchema = {
       hint: "Children or dependents the applicant supports, not counting the applicant themselves",
     },
     {
+      key: "householdSize",
+      label: "Household size",
+      type: "number",
+      required: false,
+      hint: "Total number of people living in the household, including the applicant - distinct from 'dependents' above, which excludes the applicant.",
+    },
+    {
       key: "annualIncome",
       label: "Annual household income",
       type: "currency",
       required: true,
       hint: "A yearly dollar figure. Strip currency symbols and commas, return a plain number.",
+    },
+    {
+      key: "activityRequested",
+      label: "Program requested",
+      type: "text",
+      required: false,
+      hint: "The specific recreation or culture program/activity the applicant wants fee assistance for (e.g. swimming lessons, summer camp, gym membership), if mentioned.",
     },
   ],
 };
