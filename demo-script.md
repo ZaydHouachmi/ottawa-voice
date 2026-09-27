@@ -43,10 +43,8 @@ normal pace, and on purpose DON'T mention income:)*
 > "Hi, my name's Zayd Houachmi, I live at 110 Dunbarton Court in Ottawa,
 > and I have two kids."
 
-*(Tap the mic again to stop. It shows "Transcribing…" for a second or two
-while ElevenLabs works — don't talk over it, the text lands in the box. If
-anything came out wrong — it might, on the name — say so out loud instead of
-hiding it:)*
+*(Tap the mic again to stop. If anything came out wrong — it might, on the
+name — say so out loud instead of hiding it:)*
 
 > "And if it mishears something — like an uncommon name — I just fix it
 > right here, the same way a typo always could be."
