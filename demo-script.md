@@ -21,7 +21,8 @@ line sit.)*
 ### 0:10 — Name the real problem, fast
 
 > "Government benefit forms exist to help people. But the people who need
-> them most — someone with low literacy, a newcomer still learning the
+> them most — someone with a disability that makes typing hard, someone
+> with low literacy, a newcomer still learning the
 > language, an elderly resident, someone exhausted after a double shift —
 > are often the people least equipped to fight through the paperwork to get
 > them. This is SpeakGov."
