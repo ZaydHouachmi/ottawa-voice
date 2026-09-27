@@ -25,7 +25,7 @@ Every step works in English and French. The language is an explicit choice, neve
 
 ### Any form ([speakgov.com/any-form](https://speakgov.com/any-form), experimental)
 
-Paste the questions from any form: a web page, a PDF, an email. Gemini turns them into a field list, marking required fields and turning checkbox and yes/no options into hints. From there it's the same flow: spoken prompt, voice or typed answers, follow-up for what's missing, readback, and print. Someone, say a caseworker or a family member, can paste the form once, and the person applying fills it in by talking. Pasted forms are never saved, and the server re-validates the parsed form on every request, since it comes from untrusted text.
+Paste the questions from any form: a web page, a PDF, an email. Gemini turns them into a field list, marking required fields and turning checkbox and yes/no options into hints. From there it's the same flow: spoken prompt, voice or typed answers, follow-up for what's missing, readback, and print. Someone, say a caseworker or a family member, can paste the form once, and the person applying fills it in by talking. When you're logged in, the pasted form and your answers are saved separately from your Hand in Hand application, so neither can overwrite the other. The server re-validates the parsed form on every request, since it comes from untrusted text.
 
 ## Stack
 

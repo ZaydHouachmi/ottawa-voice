@@ -128,7 +128,11 @@ export function FormExperience({ mode }: { mode: "handInHand" | "custom" }) {
   const title = isCustom
     ? (customForm?.title ?? t("pasteTitle", speechLang))
     : t("formTitle", speechLang);
-  const disclaimer = isCustom ? t("customDisclaimer", speechLang) : t("modeledOn", speechLang);
+  const disclaimer = isCustom
+    ? `${t("customDisclaimer", speechLang)} ${
+        user ? t("customSaved", speechLang) : t("customLogInToSave", speechLang)
+      }`
+    : t("modeledOn", speechLang);
 
   useEffect(() => {
     const Ctor = window.SpeechRecognition ?? window.webkitSpeechRecognition;
@@ -138,18 +142,29 @@ export function FormExperience({ mode }: { mode: "handInHand" | "custom" }) {
   // Load saved progress once, right after login. Only merges in saved
   // fields the person hasn't already filled in during this session, so
   // logging in mid-conversation never clobbers what they just said.
-  // Saved progress belongs to the Hand in Hand form only - a pasted form has
-  // different field keys, and must never overwrite someone's saved application.
+  // Each page resumes its own half of the saved blob: Hand in Hand answers
+  // on /, the last pasted form (and its answers) on /any-form - so a pasted
+  // form never overwrites someone's saved application, or vice versa.
   useEffect(() => {
-    if (!user || isCustom) return;
+    if (!user) return;
     let cancelled = false;
     (async () => {
       try {
         const res = await fetch("/api/progress");
         if (!res.ok) return;
-        const data = (await res.json()) as { fields?: FormValues };
-        if (!cancelled && data.fields) {
-          setFields((prev) => ({ ...data.fields, ...prev }));
+        const data = (await res.json()) as {
+          fields?: FormValues;
+          custom?: { form: FormSchema; fields: FormValues } | null;
+        };
+        if (cancelled) return;
+        if (!isCustom && data.fields) {
+          const saved = data.fields;
+          setFields((prev) => ({ ...saved, ...prev }));
+        }
+        if (isCustom && data.custom) {
+          const saved = data.custom;
+          setCustomForm((prev) => prev ?? saved.form);
+          setFields((prev) => (Object.keys(prev).length ? prev : saved.fields));
         }
       } catch {
         // No saved progress, or a network hiccup - not fatal, they just
@@ -166,19 +181,20 @@ export function FormExperience({ mode }: { mode: "handInHand" | "custom" }) {
   // Auto-save whenever fields change while logged in. Debounced so typing
   // a field edit doesn't fire a request per keystroke.
   useEffect(() => {
-    if (!user || isCustom || !progressLoadedRef.current) return;
+    if (!user || !progressLoadedRef.current) return;
+    if (isCustom && !customForm) return;
     const timer = window.setTimeout(() => {
       fetch("/api/progress", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fields }),
+        body: JSON.stringify(isCustom ? { custom: { form: customForm, fields } } : { fields }),
       }).catch(() => {
         // Save failures are silent by design - it's a convenience feature,
         // not core to submitting the form, and shouldn't interrupt the flow.
       });
     }, 800);
     return () => window.clearTimeout(timer);
-  }, [fields, user, isCustom]);
+  }, [fields, user, isCustom, customForm]);
 
   // The one function both text and voice input call. Never a separate path —
   // see ARCHITECTURE.md. If voice fails at demo time, typing produces an
@@ -241,6 +257,13 @@ export function FormExperience({ mode }: { mode: "handInHand" | "custom" }) {
 
   const resetCustomForm = () => {
     recognitionRef.current?.stop();
+    if (user) {
+      fetch("/api/progress", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ custom: null }),
+      }).catch(() => {});
+    }
     setCustomForm(null);
     setFields({});
     setStatus("idle");
@@ -824,11 +847,7 @@ export function FormExperience({ mode }: { mode: "handInHand" | "custom" }) {
             />
             <p className="mb-1 font-bold">{t("doneTitle", speechLang)}</p>
             <p className="text-sm text-muted">
-              {isCustom
-                ? t("doneSubCustom", speechLang)
-                : user
-                  ? t("doneSub", speechLang)
-                  : t("doneSubLoggedOut", speechLang)}
+              {user ? t("doneSub", speechLang) : t("doneSubLoggedOut", speechLang)}
             </p>
             <button
               type="button"

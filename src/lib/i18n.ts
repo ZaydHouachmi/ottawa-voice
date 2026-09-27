@@ -106,12 +106,16 @@ const strings = {
   formReadCount: { "en-US": "Form read: {n} questions", "fr-CA": "Formulaire lu : {n} questions" },
   useDifferentForm: { "en-US": "Use a different form", "fr-CA": "Utiliser un autre formulaire" },
   customDisclaimer: {
-    "en-US": "Built from a form you pasted. Nothing here is submitted anywhere, and pasted forms aren't saved.",
-    "fr-CA": "Créé à partir d'un formulaire que vous avez collé. Rien n'est transmis, et les formulaires collés ne sont pas enregistrés.",
+    "en-US": "Built from a form you pasted. Nothing here is submitted anywhere.",
+    "fr-CA": "Créé à partir d'un formulaire que vous avez collé. Rien n'est transmis nulle part.",
   },
-  doneSubCustom: {
-    "en-US": "Pasted forms aren't saved. Print a copy to keep it.",
-    "fr-CA": "Les formulaires collés ne sont pas enregistrés. Imprimez une copie pour la garder.",
+  customSaved: {
+    "en-US": "The form and your answers are saved to your account, so you can come back to it.",
+    "fr-CA": "Le formulaire et vos réponses sont enregistrés dans votre compte pour y revenir plus tard.",
+  },
+  customLogInToSave: {
+    "en-US": "Log in to save it and come back later.",
+    "fr-CA": "Connectez-vous pour l'enregistrer et y revenir plus tard.",
   },
   customPromptLead: { "en-US": "Here's what this form asks for.", "fr-CA": "Voici ce que demande ce formulaire." },
   customPromptRequired: { "en-US": "At minimum, tell me", "fr-CA": "Au minimum, dites-moi" },
