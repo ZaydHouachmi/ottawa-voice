@@ -373,7 +373,8 @@ export default function Home() {
   }, [extractCount]);
 
   return (
-    <div className="min-h-full flex-1 bg-ground text-ink">
+    <>
+    <div className="min-h-full flex-1 bg-ground text-ink print:hidden">
       {/* identity banner — the format real government sites use to assert
           official status, used here to say the honest opposite */}
       <div className="border-b-2 border-civic-red bg-accent text-ground">
@@ -687,7 +688,16 @@ export default function Home() {
               faceColor="var(--color-ground)"
             />
             <p className="mb-1 font-bold">{t("doneTitle", speechLang)}</p>
-            <p className="text-sm text-muted">{t("doneSub", speechLang)}</p>
+            <p className="text-sm text-muted">
+              {user ? t("doneSub", speechLang) : t("doneSubLoggedOut", speechLang)}
+            </p>
+            <button
+              type="button"
+              onClick={() => window.print()}
+              className="mt-4 rounded-lg border border-rule-strong px-4 py-2 text-sm font-semibold text-ink hover:bg-sunk"
+            >
+              {t("printButton", speechLang)}
+            </button>
           </div>
         )}
 
@@ -714,5 +724,50 @@ export default function Home() {
         </div>
       </footer>
     </div>
+
+    {/* Print-only application sheet. Only exists after confirming (never
+        server-rendered, so the date can't cause a hydration mismatch), and
+        hard-codes black on white so printing from dark mode still works. */}
+    {status === "confirmed" && (
+      <section className="hidden bg-white p-2 text-black print:block">
+        <p className="text-xs font-bold uppercase tracking-[0.08em]">
+          SpeakGov / ParlezGouv — {t("printEyebrow", speechLang)}
+        </p>
+        <h1 className="mt-1 mb-2 text-2xl font-bold">{t("formTitle", speechLang)}</h1>
+        <p className="mb-6 text-sm">
+          {t("printPrepared", speechLang)}{" "}
+          {new Date().toLocaleDateString(speechLang, {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          })}
+          . {t("printNotSubmitted", speechLang)}
+        </p>
+        <table className="mb-10 w-full border-collapse text-sm">
+          <tbody>
+            {handInHandForm.fields.map((field) => {
+              const value = fields[field.key];
+              return (
+                <tr key={field.key} className="border-b border-black/30">
+                  <th className="w-1/2 py-2.5 pr-4 text-left font-normal">
+                    {fieldLabel(field.key, speechLang)}
+                    {field.required ? " *" : ""}
+                  </th>
+                  <td className="py-2.5 font-semibold">
+                    {value !== undefined ? formatFieldValue(field.type, value) : "—"}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+        <div className="mb-10 flex gap-10 text-sm">
+          <div className="flex-1 border-t border-black pt-1">{t("signature", speechLang)}</div>
+          <div className="w-1/3 border-t border-black pt-1">{t("dateLabel", speechLang)}</div>
+        </div>
+        <p className="text-xs">{t("modeledOn", speechLang)}</p>
+      </section>
+    )}
+    </>
   );
 }

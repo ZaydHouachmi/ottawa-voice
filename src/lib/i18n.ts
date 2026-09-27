@@ -78,6 +78,21 @@ const strings = {
   stillNeedLead: { "en-US": "Got it. I still need", "fr-CA": "C'est noté. Il me manque encore" },
   your: { "en-US": "your", "fr-CA": "votre" },
   filledIn: { "en-US": "Filled in:", "fr-CA": "Rempli :" },
+  doneSubLoggedOut: {
+    "en-US": "Not saved to an account. Log in to keep it, or print a copy.",
+    "fr-CA": "Non enregistré dans un compte. Connectez-vous pour le garder, ou imprimez une copie.",
+  },
+  printButton: { "en-US": "Print or save as PDF", "fr-CA": "Imprimer ou enregistrer en PDF" },
+  printEyebrow: { "en-US": "Application summary", "fr-CA": "Résumé de la demande" },
+  printPrepared: { "en-US": "Prepared with SpeakGov on", "fr-CA": "Préparé avec ParlezGouv le" },
+  printNotSubmitted: {
+    "en-US":
+      "A copy for your records or to bring to a service counter. It has not been submitted to the City.",
+    "fr-CA":
+      "Une copie pour vos dossiers ou à apporter à un comptoir de service. Elle n'a pas été transmise à la Ville.",
+  },
+  signature: { "en-US": "Signature", "fr-CA": "Signature" },
+  dateLabel: { "en-US": "Date", "fr-CA": "Date" },
   tapToHear: { "en-US": "🔊 tap to hear it read back", "fr-CA": "🔊 touchez pour l'entendre" },
   generating: { "en-US": "🔊 generating…", "fr-CA": "🔊 génération…" },
   playing: { "en-US": "🔊 playing…", "fr-CA": "🔊 lecture…" },
