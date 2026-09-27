@@ -35,27 +35,39 @@ line sit.)*
 *(Let the audio play in full. Don't talk over it — the silence while a real
 voice speaks is doing work for you.)*
 
-### 0:45 — Speak the answer
+### 0:45 — Speak the answer (deliberately leave out your income)
 
-*(Tap the mic. Speak clearly, at a normal pace:)*
+*(Tap the mic — the leaf's mouth opens while it listens. Speak clearly, at a
+normal pace, and on purpose DON'T mention income:)*
 
-> "Hi, my name's Zayd Houachmi, I live at 110 Dunbarton Court in Ottawa, I
-> have two dependents, and my annual income is about 50 thousand dollars."
+> "Hi, my name's Zayd Houachmi, I live at 110 Dunbarton Court in Ottawa,
+> and I have two kids."
 
 *(Tap the mic again to stop. If anything came out wrong — it might, on the
 name — say so out loud instead of hiding it:)*
 
 > "And if it mishears something — like an uncommon name — I just fix it
-> right here, the same way a typo always could be. That's on purpose: voice
-> gets you most of the way, a five-second correction gets you the rest."
+> right here, the same way a typo always could be."
 
-*(Fix it live if needed. Then:)*
+*(Fix it live if needed, then tap Tell it. Let the fields type themselves in.)*
 
-> "Tell it."
+### 1:05 — It asks for what you left out (the moment to let breathe)
 
-*(Tap Tell it. Let the fields populate.)*
+*(Don't talk. It says out loud: "Got it. I still need your annual household
+income." Let it finish, then answer it — mic again:)*
 
-### 1:20 — The confirm-direction readback
+> "About 50 thousand a year."
+
+*(Tell it. Income types in, the red "Still needed" bar disappears, Confirm
+unlocks. Then:)*
+
+> "I never read the form to find out what was missing. It noticed, and it
+> asked me."
+
+*(If you typed instead of speaking, it won't auto-play — tap the red
+"Still needed" bar to make it speak.)*
+
+### 1:25 — The confirm-direction readback
 
 *(Tap the readback bubble.)*
 
@@ -77,10 +89,10 @@ switch happened.)*
 
 ### 2:00 — Auth0 + the deploy, quickly, don't over-explain
 
-> "Logging in saves your progress automatically — a half-filled form is
-> there when you come back, no more re-explaining yourself from scratch.
-> And this isn't running on my laptop — it's deployed live, real HTTPS, on
-> its own domain: speakgov.com."
+> "Confirm, and you can print it or save it as a PDF to bring to a counter.
+> Log in and your progress saves automatically — a half-filled form is
+> there when you come back. And this isn't running on my laptop — it's
+> deployed live, real HTTPS, on its own domain: speakgov.com."
 
 ### 2:20 — The honest scope line (say this before a judge has to ask)
 
