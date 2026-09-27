@@ -1,36 +1,75 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SpeakGov / ParlezGouv
 
-## Getting Started
+**Fill in a government benefit form by talking about your situation — in English or French — without needing to read the form.**
 
-First, run the development server:
+Live: **[speakgov.com](https://speakgov.com)** · Built solo at **Hack the Hill III** (uOttawa, September 2026)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+---
+
+## The problem
+
+Benefit forms exist to help people, but the form itself is often the barrier. The people who most need a program like the City of Ottawa's Hand in Hand recreation fee support — someone with low literacy, a newcomer still learning the language, an elderly resident, someone with a disability that makes typing hard — are often the least equipped to get through the paperwork.
+
+## What SpeakGov does
+
+SpeakGov is a conversational layer in front of an existing form. It doesn't replace the form, the eligibility rules, or the government's backend. It's one more accessible channel, next to paper, phone, and the service counter.
+
+1. **It tells you what it needs, out loud.** One tap, and a real voice explains what the form asks for in plain language. You don't need to read the field labels first.
+2. **You answer however you like.** Speak or type, all at once and in your own words. Voice sits on top of the same text path, so if the mic fails, typing gives the exact same result.
+3. **The form fills itself in.** Gemini pulls structured answers out of what you said, and they type themselves into the form live.
+4. **It asks for what's missing.** If you left out something required, it says so: *"Got it. I still need your address and your annual household income."* If you were speaking, it says this out loud; if you were typing, it shows it. Answer just that part and it merges in.
+5. **It reads everything back before you confirm.** ElevenLabs reads the completed summary aloud. Correcting a field is one tap.
+6. **It saves your progress.** Log in with Auth0 and a half-finished form is still there when you come back.
+
+Every step works in English and French. The language is an explicit choice, never guessed from the browser. At no point from start to finish do you need to read text to use it.
+
+## Stack
+
+| Piece | Used for |
+|---|---|
+| **Next.js 16** (App Router, Turbopack), React 19, TypeScript, Tailwind v4 | App and API routes in one project |
+| **Gemini API** (`gemini-3.8-flash`, structured JSON output) | Turning free-form speech or text into form fields |
+| **ElevenLabs** (`eleven_multilingual_v2`) | Spoken prompt, follow-up, and readback, EN and FR in one voice |
+| **Web Speech API** | Speech recognition in the browser |
+| **Auth0** | Login plus save/resume (one JSON document per user) |
+| **Vultr** + Caddy + PM2 | Hosting, automatic HTTPS, process supervision |
+| **GoDaddy Registry** | speakgov.com |
+
+## How it works
+
+```
+speech ─┐
+        ├─► text box (review / edit) ─► /api/extract (Gemini) ─► form fields
+typing ─┘                                                          │
+                                   missing required fields? ◄──────┤
+                                   └─► spoken follow-up             │
+                                         (/api/speak, ElevenLabs)   ▼
+                                                        readback ─► confirm
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- `src/lib/schema.ts` defines the one form: 8 fields, 3 of them required.
+- `src/app/api/extract/route.ts` handles Gemini extraction with a strict JSON schema.
+- `src/app/api/speak/route.ts` handles ElevenLabs text-to-speech. If it's unavailable, the browser's own speech synthesis takes over.
+- `src/app/api/progress/route.ts` handles save/resume, gated by Auth0.
+- `src/app/page.tsx` is the whole interface.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Engineering notes
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Why every schema field is `required`.** With an all-optional JSON schema, the model would reason about every field internally, then write only one of them to its output. Making every field required and nullable forces it to consider each one. The nulls are stripped out before anything reaches the client.
+- **Why voice never auto-submits.** Browser speech recognition struggles with uncommon names. Sending a misheard name straight to the model turned one mistake into someone spelling their name out loud over and over. Now the transcript lands in the text box for a quick check first.
+- **Why the language is always explicit.** Inheriting the operating system's locale silently switched both speech recognition and read-aloud to French on a French-language machine, even for someone speaking English.
+- **Accessibility.** A polite live region narrates what was filled in and what's still missing, errors use `role="alert"`, required fields are marked for screen readers, and every animation respects `prefers-reduced-motion`.
 
-## Learn More
+## Running locally
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm install
+cp .env.local.example .env.local   # fill in the keys below
+npm run dev                        # http://localhost:3000
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Keys: `GOOGLE_API_KEY` and `ELEVENLABS_API_KEY` (optional: `ELEVENLABS_VOICE_ID`). For login, add Auth0's standard `AUTH0_DOMAIN`, `AUTH0_CLIENT_ID`, `AUTH0_CLIENT_SECRET`, `AUTH0_SECRET`, and `APP_BASE_URL`. Everything except login works without the Auth0 keys.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Honest scope
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+This is one form, done completely, on purpose. It's modeled on the shape of Ottawa's Hand in Hand program, not copied from it, and nothing is submitted to the City. Someone who speaks neither English nor French still isn't served, the same as with a paper form today.

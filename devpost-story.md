@@ -10,7 +10,7 @@ Open SpeakGov and, before you're asked to type or say anything, you can tap one 
 
 > "Hi, my name's Zayd Houachmi, I live at 110 Dunbarton Court in Ottawa, I have two dependents, and my annual income is about 50 thousand dollars."
 
-Gemini extracts the four fields for a real program (modeled on the City of Ottawa's Hand in Hand recreation fee support) and they populate live on screen. You review what it heard — correcting a field is one tap — then confirm, and ElevenLabs reads the completed summary back to you before you're done. Log in with Auth0 and your progress saves automatically, so a half-filled form is there when you come back.
+Gemini extracts the answers for a real program's eight-field form (modeled on the City of Ottawa's Hand in Hand recreation fee support) and they type themselves in live on screen. Leave out something required and it tells you, out loud if you were speaking: _"Got it. I still need your address and your annual household income."_ Answer just that part and it merges in. You review what it heard — correcting a field is one tap — then confirm, and ElevenLabs reads the completed summary back to you before you're done. Log in with Auth0 and your progress saves automatically, so a half-filled form is there when you come back.
 
 Both directions are spoken, not just one. Reading text is never required to use the product start to finish — which matters, because a product that only reads your answer _back_ to you still assumed you could read the question in the first place.
 

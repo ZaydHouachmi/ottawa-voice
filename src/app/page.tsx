@@ -83,7 +83,16 @@ export default function Home() {
   // Which spoken moment is active, if any - the "what to say" prompt or the
   // "here's what I have" readback - so each button can show its own state
   // without the two stepping on each other.
-  const [audioAction, setAudioAction] = useState<"prompt" | "readback" | null>(null);
+  const [audioAction, setAudioAction] = useState<"prompt" | "readback" | "followup" | null>(
+    null,
+  );
+  // Bumped after each successful extraction so an effect can react with the
+  // freshly merged fields, instead of the extract callback reading stale ones.
+  const [extractCount, setExtractCount] = useState(0);
+  // If you spoke to it, it speaks back what's missing; if you typed, it only
+  // shows it. Auto-playing audio at someone who chose the keyboard would be
+  // a surprise, but someone using voice may not be able to read the notice.
+  const voiceRoundRef = useRef(false);
   const [audioStatus, setAudioStatus] = useState<"loading" | "playing">("loading");
   // Explicit choice, never inferred from navigator.language — that silently
   // forced French recognition on a French-locale OS even when the person
@@ -167,6 +176,7 @@ export default function Home() {
       setFields((prev) => ({ ...prev, ...newFields }));
       setFreshKeys(new Set(Object.keys(newFields)));
       setStatus("ready");
+      setExtractCount((c) => c + 1);
       window.setTimeout(() => setFreshKeys(new Set()), 2200);
     } catch (err) {
       console.error(err);
@@ -220,6 +230,7 @@ export default function Home() {
     };
 
     recognitionRef.current = recognition;
+    voiceRoundRef.current = true;
     setStatus("listening");
     setError(null);
     setText("");
@@ -267,7 +278,7 @@ export default function Home() {
   // fully spoken directions, so neither ever requires reading a label to
   // use the product - see the conversation that led to adding the prompt
   // side of this, not just the readback side.
-  const playText = async (phrase: string, action: "prompt" | "readback") => {
+  const playText = async (phrase: string, action: "prompt" | "readback" | "followup") => {
     setAudioAction(action);
     setAudioStatus("loading");
     try {
@@ -302,17 +313,64 @@ export default function Home() {
 
   const speakPrompt = () => playText(t("whatToSayPrompt", speechLang), "prompt");
 
-  const speakReadback = () => {
-    const phrase =
-      speechLang === "fr-CA"
-        ? `Voici ce que j'ai. ${readbackSummary()}. Dites confirmer, ou modifiez un champ ci-dessous.`
-        : `Here's what I have. ${readbackSummary()}. Say confirm, or change a field below.`;
-    return playText(phrase, "readback");
-  };
-
   const filledCount = handInHandForm.fields.filter(
     (f) => fields[f.key] !== undefined,
   ).length;
+
+  const missingRequired = handInHandForm.fields.filter(
+    (f) => f.required && fields[f.key] === undefined,
+  );
+
+  // "Got it. I still need your address and your annual household income." -
+  // closes the same reading gap the "what to say" prompt closes at the start,
+  // but at step two: after a partial answer, someone who can't read the form
+  // otherwise has no way to know what's left.
+  const followUpPhrase = () => {
+    const items = missingRequired.map((f) => {
+      const label = fieldLabel(f.key, speechLang);
+      return `${t("your", speechLang)} ${label.charAt(0).toLowerCase()}${label.slice(1)}`;
+    });
+    const list = new Intl.ListFormat(speechLang, { style: "long", type: "conjunction" }).format(
+      items,
+    );
+    return `${t("stillNeedLead", speechLang)} ${list}.`;
+  };
+
+  const speakFollowUp = () => playText(followUpPhrase(), "followup");
+
+  const speakReadback = () => {
+    const tail =
+      missingRequired.length > 0
+        ? followUpPhrase()
+        : speechLang === "fr-CA"
+          ? "Appuyez sur Confirmer, ou modifiez un champ ci-dessous."
+          : "Tap confirm, or change a field below.";
+    const lead = speechLang === "fr-CA" ? "Voici ce que j'ai." : "Here's what I have.";
+    return playText(`${lead} ${readbackSummary()}. ${tail}`, "readback");
+  };
+
+  // Screen-reader-only narration: reading, what got filled, what's still
+  // missing (errors use role="alert" separately). The visible status line
+  // changes on every keystroke, so it can't be the live region itself
+  // without spamming announcements while someone types.
+  const announcement =
+    status === "extracting"
+      ? t("readingThat", speechLang)
+      : status === "ready" && extractCount > 0
+        ? `${t("filledIn", speechLang)} ${handInHandForm.fields
+            .filter((f) => fields[f.key] !== undefined)
+            .map((f) => fieldLabel(f.key, speechLang))
+            .join(", ")}.` + (missingRequired.length > 0 ? ` ${followUpPhrase()}` : "")
+        : "";
+
+  useEffect(() => {
+    if (extractCount === 0) return;
+    const wasVoice = voiceRoundRef.current;
+    voiceRoundRef.current = false;
+    if (wasVoice && missingRequired.length > 0) speakFollowUp();
+    // Only react to a new extraction, not to every field edit in between.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [extractCount]);
 
   return (
     <div className="min-h-full flex-1 bg-ground text-ink">
@@ -490,7 +548,14 @@ export default function Home() {
               {status === "extracting" ? t("reading", speechLang) : t("tellIt", speechLang)}
             </button>
           </div>
-          {error && <p className="mt-2 text-xs text-mic">{error}</p>}
+          {error && (
+            <p role="alert" className="mt-2 text-xs text-mic">
+              {error}
+            </p>
+          )}
+          <p role="status" aria-live="polite" className="sr-only">
+            {announcement}
+          </p>
         </div>
 
         {/* live form panel — sharp corners and a heavier border, like a
@@ -511,6 +576,14 @@ export default function Home() {
               >
                 <span className="flex-shrink-0 text-faint">
                   {fieldLabel(field.key, speechLang)}
+                  {field.required && (
+                    <>
+                      <span aria-hidden className="ml-0.5 text-civic-red">
+                        *
+                      </span>
+                      <span className="sr-only"> ({t("required", speechLang)})</span>
+                    </>
+                  )}
                 </span>
                 {isEditing ? (
                   <input
@@ -527,9 +600,11 @@ export default function Home() {
                   <button
                     type="button"
                     onClick={() => setEditingKey(field.key)}
-                    aria-label={
-                      value !== undefined ? formatFieldValue(field.type, value) : undefined
-                    }
+                    aria-label={`${fieldLabel(field.key, speechLang)}: ${
+                      value !== undefined
+                        ? formatFieldValue(field.type, value)
+                        : t("notYetProvided", speechLang)
+                    }`}
                     className={`field-value-transition rounded px-1.5 py-0.5 text-right font-semibold ${
                       value === undefined
                         ? "font-normal italic text-faint"
@@ -555,6 +630,24 @@ export default function Home() {
         {/* confirm / readback */}
         {filledCount > 0 && status !== "confirmed" && (
           <div className="rounded-xl border border-rule bg-surface p-4">
+            {missingRequired.length > 0 && (
+              <button
+                type="button"
+                onClick={speakFollowUp}
+                disabled={audioAction !== null}
+                className="mb-3 w-full rounded-lg border-l-4 border-civic-red bg-civic-red-wash px-3 py-2.5 text-left text-sm disabled:opacity-70"
+              >
+                <span className="mb-1 block font-mono text-[10px] uppercase tracking-[0.06em] text-civic-red">
+                  {audioAction === "followup"
+                    ? audioStatus === "loading"
+                      ? t("generating", speechLang)
+                      : t("playing", speechLang)
+                    : t("tapToHearShort", speechLang)}
+                </span>
+                <span className="font-semibold">{t("stillNeeded", speechLang)}</span>{" "}
+                {missingRequired.map((f) => fieldLabel(f.key, speechLang)).join(", ")}
+              </button>
+            )}
             <button
               type="button"
               onClick={speakReadback}
@@ -574,7 +667,8 @@ export default function Home() {
               <button
                 type="button"
                 onClick={() => setStatus("confirmed")}
-                className="rounded-lg bg-fill px-4 py-2 text-sm font-semibold text-surface"
+                disabled={missingRequired.length > 0}
+                className="rounded-lg bg-fill px-4 py-2 text-sm font-semibold text-surface disabled:opacity-40"
               >
                 {t("confirm", speechLang)}
               </button>
