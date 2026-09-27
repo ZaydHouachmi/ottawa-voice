@@ -333,10 +333,13 @@ export default function Home() {
       </div>
 
       <div className="mx-auto max-w-xl px-5 py-9 sm:py-11">
-        <header className="mb-8">
+        <header className="animate-intro mb-8">
           <div className="mb-4 flex items-start justify-between gap-3">
             <div className="flex items-center gap-3">
-              <Mascot className="h-10 w-10 flex-shrink-0" />
+              <Mascot
+                className="h-10 w-10 flex-shrink-0"
+                listening={status === "listening"}
+              />
               <div>
                 <p className="text-base font-bold leading-tight tracking-tight">
                   SpeakGov
@@ -429,13 +432,18 @@ export default function Home() {
                   ? t("stopListeningAria", speechLang)
                   : t("startListeningAria", speechLang)
               }
-              className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full text-lg transition-colors ${
+              className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full transition-colors ${
                 status === "listening"
                   ? "animate-mic-pulse bg-mic text-surface"
                   : "bg-mic-wash text-mic disabled:opacity-40"
               }`}
             >
-              🎙
+              <Mascot
+                className="h-6 w-6"
+                listening={status === "listening"}
+                leafColor="currentColor"
+                faceColor={status === "listening" ? "var(--color-mic)" : "var(--color-mic-wash)"}
+              />
             </button>
             <textarea
               value={text}
@@ -578,10 +586,12 @@ export default function Home() {
         )}
 
         {status === "confirmed" && (
-          <div className="rounded-xl border border-rule bg-surface p-6 text-center">
-            <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-fill-wash text-lg text-fill">
-              ✓
-            </div>
+          <div className="animate-done-in rounded-xl border border-rule bg-surface p-6 text-center">
+            <Mascot
+              className="mx-auto mb-3 h-14 w-14"
+              leafColor="var(--color-fill)"
+              faceColor="var(--color-ground)"
+            />
             <p className="mb-1 font-bold">{t("doneTitle", speechLang)}</p>
             <p className="text-sm text-muted">{t("doneSub", speechLang)}</p>
           </div>
@@ -591,6 +601,24 @@ export default function Home() {
           {t("modeledOn", speechLang)}
         </p>
       </div>
+
+      <footer className="border-t border-rule">
+        <div className="mx-auto flex max-w-xl flex-wrap items-center justify-between gap-3 px-5 py-5 text-xs">
+          <span className="font-mono uppercase tracking-[0.08em] text-faint">
+            Built at Hack the Hill III
+          </span>
+          <div className="flex items-center gap-4 font-semibold text-muted">
+            <a
+              href="https://github.com/ZaydHouachmi/ottawa-voice"
+              target="_blank"
+              rel="noreferrer"
+              className="hover:text-ink"
+            >
+              GitHub
+            </a>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

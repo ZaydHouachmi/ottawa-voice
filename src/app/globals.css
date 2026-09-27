@@ -149,6 +149,39 @@ body {
   .thinking-dots span:nth-child(3) {
     animation-delay: 0.3s;
   }
+
+  /* One-shot page-load reveal for the header - a single orchestrated
+     moment rather than an ambient/looping idle animation, so the first
+     paint isn't just four flat "not yet provided" rows appearing at once. */
+  @keyframes intro-rise {
+    0% {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  .animate-intro {
+    animation: intro-rise 600ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  /* The confirmed/"done" screen is the payoff moment of the whole flow -
+     worth one deliberate settle-in instead of appearing instantly. */
+  @keyframes done-in {
+    0% {
+      opacity: 0;
+      transform: scale(0.92) translateY(6px);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+  .animate-done-in {
+    animation: done-in 500ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
 }
 
 /* Reduced-motion fallback: exit transition still uses a plain CSS
